@@ -1,0 +1,627 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Neon Leap: Evolved</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&display=swap');
+        
+        body {
+            margin: 0;
+            overflow: hidden;
+            background-color: #050505;
+            color: white;
+            font-family: 'Orbitron', sans-serif;
+            touch-action: none;
+            user-select: none;
+            -webkit-user-select: none;
+            transition: background-color 1s ease;
+        }
+
+        canvas {
+            display: block;
+            width: 100%;
+            height: 100%;
+        }
+
+        #ui-layer {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            z-index: 20;
+        }
+
+        .score-container {
+            position: absolute;
+            top: 5%;
+            width: 100%;
+            text-align: center;
+            z-index: 5;
+        }
+
+        .score-display {
+            font-size: 4rem;
+            font-weight: 900;
+            color: rgba(255, 255, 255, 0.2);
+            transition: transform 0.1s;
+            text-shadow: 0 0 10px rgba(255, 255, 255, 0.1);
+        }
+
+        .level-display {
+            font-size: 1rem;
+            color: rgba(255, 255, 255, 0.6);
+            letter-spacing: 3px;
+            margin-top: -10px;
+            text-transform: uppercase;
+        }
+
+        .active-score {
+            color: rgba(255, 255, 255, 0.9);
+            transform: scale(1.2);
+        }
+
+        .menu-screen {
+            pointer-events: auto;
+            background: rgba(10, 10, 15, 0.9);
+            padding: 2.5rem;
+            border-radius: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(15px);
+            box-shadow: 0 0 60px rgba(0, 0, 0, 0.5);
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+            min-width: 280px;
+            transition: opacity 0.3s;
+        }
+
+        h1 {
+            font-size: 2.5rem;
+            background: linear-gradient(to bottom right, #fff, #aaa);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            margin: 0;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+
+        .btn {
+            background: rgba(255, 255, 255, 0.1);
+            border: 2px solid currentColor;
+            color: white;
+            padding: 16px 40px;
+            font-size: 1.2rem;
+            font-family: 'Orbitron', sans-serif;
+            cursor: pointer;
+            transition: all 0.2s;
+            text-transform: uppercase;
+            font-weight: 900;
+            border-radius: 50px;
+        }
+
+        .btn:active { transform: scale(0.95); }
+
+        .hidden { display: none !important; }
+
+        /* LEVEL UP ANIMASYONU */
+        #level-up-msg {
+            position: absolute;
+            top: 30%;
+            width: 100%;
+            text-align: center;
+            font-size: 3rem;
+            font-weight: 900;
+            color: #fff;
+            text-shadow: 0 0 20px currentColor;
+            opacity: 0;
+            transform: scale(0.5);
+            pointer-events: none;
+        }
+
+        .levelup-anim {
+            animation: levelUpPop 2s forwards;
+        }
+
+        @keyframes levelUpPop {
+            0% { opacity: 0; transform: scale(0.5) translateY(50px); }
+            20% { opacity: 1; transform: scale(1.2) translateY(0); }
+            80% { opacity: 1; transform: scale(1) translateY(0); }
+            100% { opacity: 0; transform: scale(1.5) translateY(-50px); }
+        }
+        
+        #tutorial {
+            position: absolute;
+            bottom: 15%;
+            width: 100%;
+            text-align: center;
+            color: rgba(255, 255, 255, 0.5);
+            animation: pulse 1.5s infinite;
+            z-index: 15;
+        }
+        @keyframes pulse { 0%, 100% { opacity: 0.5; } 50% { opacity: 1; } }
+    </style>
+</head>
+<body>
+
+    <div class="score-container">
+        <div id="level-txt" class="level-display">LEVEL 1</div>
+        <div id="score" class="score-display">0</div>
+    </div>
+
+    <div id="level-up-msg">LEVEL UP!</div>
+
+    <div id="ui-layer">
+        <div id="start-screen" class="menu-screen">
+            <h1 id="title-text" style="color:#00f2ff">NEON LEAP</h1>
+            <p style="color: #889; font-size: 0.9rem; margin:0;">Bölümler ve Tuzaklar</p>
+            <button class="btn" id="start-btn" style="color:#00f2ff; border-color:#00f2ff">BAŞLAT</button>
+        </div>
+
+        <div id="game-over-screen" class="menu-screen hidden">
+            <h1 style="color:#ff0055">YIKIM</h1>
+            <div style="margin: 10px 0;">
+                <div style="font-size: 3rem;" id="final-score">0</div>
+                <div style="color: #666; font-size: 0.8rem;">EN İYİ: <span id="best-score">0</span></div>
+            </div>
+            <button class="btn" id="restart-btn" style="color:#ff0055; border-color:#ff0055">TEKRAR</button>
+        </div>
+    </div>
+    
+    <div id="tutorial" class="hidden">DOKUN VE ZIPLA</div>
+
+    <canvas id="gameCanvas"></canvas>
+
+    <script>
+        // --- AYARLAR VE TEMALAR ---
+        const THEMES = [
+            { name: "NEON CITY", bg: "#050505", main: "#00f2ff", sec: "#00ff9d", threshold: 0 },
+            { name: "CYBER DRIFT", bg: "#100010", main: "#ff00ff", sec: "#aa00ff", threshold: 10 }, // Hareketli halkalar başlar
+            { name: "SOLAR FLARE", bg: "#150500", main: "#ff5500", sec: "#ffaa00", threshold: 25 }, // Küçülen halkalar başlar
+            { name: "THE VOID", bg: "#000000", main: "#ffffff", sec: "#555555", threshold: 40 }     // Kaos
+        ];
+
+        // --- SES SİSTEMİ (Güvenli) ---
+        const AudioSystem = {
+            ctx: null,
+            initialized: false,
+            init: function() {
+                if (this.initialized) return;
+                try {
+                    const AC = window.AudioContext || window.webkitAudioContext;
+                    if (AC) {
+                        this.ctx = new AC();
+                        this.initialized = true;
+                        if (this.ctx.state === 'suspended') this.ctx.resume();
+                    }
+                } catch(e){}
+            },
+            play: function(type) {
+                if (!this.ctx || !this.initialized) return;
+                const t = this.ctx.currentTime;
+                const osc = this.ctx.createOscillator();
+                const g = this.ctx.createGain();
+                osc.connect(g); g.connect(this.ctx.destination);
+
+                if (type === 'jump') {
+                    osc.frequency.setValueAtTime(300, t);
+                    osc.frequency.exponentialRampToValueAtTime(600, t+0.1);
+                    g.gain.setValueAtTime(0.2, t);
+                    g.gain.exponentialRampToValueAtTime(0.01, t+0.15);
+                    osc.start(t); osc.stop(t+0.15);
+                } else if (type === 'score') {
+                    osc.type = 'triangle';
+                    osc.frequency.setValueAtTime(600 + (score*10), t); // Skor arttıkça ses tizleşir
+                    g.gain.setValueAtTime(0.1, t);
+                    g.gain.linearRampToValueAtTime(0, t+0.1);
+                    osc.start(t); osc.stop(t+0.1);
+                } else if (type === 'levelup') {
+                    osc.type = 'square';
+                    osc.frequency.setValueAtTime(200, t);
+                    osc.frequency.linearRampToValueAtTime(800, t+0.3);
+                    g.gain.setValueAtTime(0.1, t);
+                    g.gain.linearRampToValueAtTime(0, t+0.5);
+                    osc.start(t); osc.stop(t+0.5);
+                } else if (type === 'die') {
+                    osc.type = 'sawtooth';
+                    osc.frequency.setValueAtTime(100, t);
+                    osc.frequency.exponentialRampToValueAtTime(10, t+0.5);
+                    g.gain.setValueAtTime(0.3, t);
+                    g.gain.linearRampToValueAtTime(0, t+0.5);
+                    osc.start(t); osc.stop(t+0.5);
+                }
+            }
+        };
+
+        // --- OYUN DEĞİŞKENLERİ ---
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d', { alpha: false });
+        
+        let width, height;
+        let gameState = 'MENU';
+        let score = 0;
+        let currentLevel = 0;
+        let highScore = parseInt(localStorage.getItem('neonLeap2High') || '0');
+        let cameraY = 0;
+        let particles = [];
+        let orbs = [];
+        let player = null;
+        
+        // --- SINIFLAR ---
+
+        class Player {
+            constructor() {
+                this.reset();
+            }
+            reset() {
+                this.radius = 10;
+                this.x = width/2;
+                this.y = height-200;
+                this.vx = 0; this.vy = 0;
+                this.orbiting = true;
+                this.currentOrb = null;
+                this.angle = -Math.PI/2;
+                this.trail = [];
+            }
+            update() {
+                if (gameState === 'PLAYING') {
+                    this.trail.push({x:this.x, y:this.y, a:1});
+                    if(this.trail.length>12) this.trail.shift();
+                    this.trail.forEach(t=>t.a-=0.08);
+                }
+
+                if (this.orbiting && this.currentOrb) {
+                    let speed = 0.06 + (currentLevel * 0.01); 
+                    this.angle += speed * this.currentOrb.direction;
+                    
+                    // Oyuncu orb ile birlikte hareket etmeli (hareketli orblar için)
+                    this.x = this.currentOrb.x + Math.cos(this.angle) * this.currentOrb.radius;
+                    this.y = this.currentOrb.y + Math.sin(this.angle) * this.currentOrb.radius;
+                } else {
+                    this.x += this.vx;
+                    this.y += this.vy;
+                    
+                    // Yerçekimi yok ama aşağı düşünce ölüm var
+                    if (this.x < -50 || this.x > width+50 || this.y > cameraY + height + 100 || this.y < cameraY - 500) {
+                        endGame();
+                    }
+                }
+            }
+            draw() {
+                // Kuyruk
+                let theme = THEMES[currentLevel] || THEMES[0];
+                if(this.trail.length>1){
+                    ctx.beginPath();
+                    ctx.moveTo(this.trail[0].x, this.trail[0].y - cameraY);
+                    for(let i=1; i<this.trail.length; i++) ctx.lineTo(this.trail[i].x, this.trail[i].y - cameraY);
+                    ctx.lineCap='round';
+                    ctx.lineWidth=4;
+                    ctx.strokeStyle = theme.main;
+                    ctx.globalAlpha = 0.5;
+                    ctx.stroke();
+                    ctx.globalAlpha = 1;
+                }
+                // Kafa
+                ctx.beginPath();
+                ctx.arc(this.x, this.y - cameraY, this.radius, 0, Math.PI*2);
+                ctx.fillStyle = '#fff';
+                ctx.fill();
+                ctx.shadowBlur=15; ctx.shadowColor=theme.main; ctx.fill(); ctx.shadowBlur=0;
+            }
+            jump() {
+                if (this.orbiting && this.currentOrb) {
+                    this.orbiting = false;
+                    let tangent = this.angle + (Math.PI/2 * this.currentOrb.direction);
+                    let power = 13 + (currentLevel * 0.5);
+                    if(power > 22) power = 22; // Max hız limiti
+
+                    this.vx = Math.cos(tangent) * power;
+                    this.vy = Math.sin(tangent) * power;
+                    AudioSystem.play('jump');
+                }
+            }
+        }
+
+        class Orb {
+            constructor(y) {
+                this.y = y;
+                this.radius = 60 + Math.random()*25;
+                let safeW = width>100?width:300;
+                this.x = Math.random()*(safeW - this.radius*2) + this.radius;
+                
+                this.direction = Math.random()>0.5?1:-1;
+                
+                // LEVEL MEKANİKLERİ
+                this.moving = false;
+                this.moveSpeed = 0;
+                this.shrinking = false;
+                
+                // Seviye 2 (Score > 10): Hareketli Halkalar
+                if (score > 10 && Math.random() > 0.4) {
+                    this.moving = true;
+                    this.moveSpeed = (Math.random() * 1.5 + 0.5) * (Math.random()>0.5?1:-1);
+                }
+
+                // Seviye 3 (Score > 25): Küçülen Halkalar
+                if (score > 25 && Math.random() > 0.5) {
+                    this.shrinking = true;
+                }
+            }
+            
+            update() {
+                if (gameState !== 'PLAYING') return;
+
+                // Hareket Mantığı
+                if (this.moving) {
+                    this.x += this.moveSpeed;
+                    if (this.x < this.radius || this.x > width - this.radius) {
+                        this.moveSpeed *= -1; // Duvarlardan sek
+                    }
+                }
+
+                // Küçülme Mantığı
+                if (this.shrinking && this.radius > 25) {
+                    this.radius -= 0.05;
+                    // Eğer oyuncu üzerindeyse ve radius çok küçüldüyse zorluk artar
+                }
+            }
+
+            draw() {
+                let dy = this.y - cameraY;
+                if (dy < -200 || dy > height+200) return;
+                
+                let theme = THEMES[currentLevel];
+
+                ctx.beginPath();
+                ctx.arc(this.x, dy, this.radius, 0, Math.PI*2);
+                ctx.lineWidth = 3;
+                ctx.strokeStyle = theme.main;
+                ctx.stroke();
+                
+                // İç dolgu (hafif)
+                ctx.fillStyle = theme.sec;
+                ctx.globalAlpha = 0.1;
+                ctx.fill();
+                ctx.globalAlpha = 1;
+
+                // Merkez noktası (Yardımcı)
+                if (this.shrinking) {
+                    ctx.fillStyle = '#ff0000'; // Küçülenler kırmızı merkezli
+                } else {
+                    ctx.fillStyle = '#fff';
+                }
+                ctx.beginPath(); ctx.arc(this.x, dy, 2, 0, Math.PI*2); ctx.fill();
+            }
+        }
+
+        class Particle {
+            constructor(x, y, color) {
+                this.x=x; this.y=y; this.color=color;
+                let a = Math.random()*Math.PI*2;
+                let s = Math.random()*5+2;
+                this.vx=Math.cos(a)*s; this.vy=Math.sin(a)*s;
+                this.life=1;
+            }
+            update() { this.x+=this.vx; this.y+=this.vy; this.life-=0.03; }
+            draw() {
+                ctx.globalAlpha=this.life; ctx.fillStyle=this.color;
+                ctx.beginPath(); ctx.arc(this.x, this.y-cameraY, 3, 0, Math.PI*2); ctx.fill();
+                ctx.globalAlpha=1;
+            }
+        }
+
+        // --- OYUN MOTORU ---
+
+        function resize() {
+            width=window.innerWidth; height=window.innerHeight;
+            canvas.width=width; canvas.height=height;
+        }
+
+        function initGame() {
+            resize();
+            score=0;
+            currentLevel=0;
+            updateTheme();
+            
+            document.getElementById('score').innerText = score;
+            document.getElementById('level-txt').innerText = "LEVEL 1";
+            
+            orbs=[]; particles=[];
+            
+            let startOrb = new Orb(height-200);
+            startOrb.x = width/2;
+            startOrb.radius = 80;
+            startOrb.moving = false; // İlk orb asla hareket etmez
+            startOrb.shrinking = false;
+            orbs.push(startOrb);
+
+            player = new Player();
+            player.currentOrb = startOrb;
+            player.x = startOrb.x; player.y = startOrb.y-startOrb.radius;
+            
+            cameraY = player.y - height/1.5;
+            generateOrbs();
+        }
+
+        function generateOrbs() {
+            let topY = orbs.length>0 ? orbs[orbs.length-1].y : height;
+            while (topY > cameraY - height) {
+                let dist = 250 + (Math.random()*50);
+                topY -= dist;
+                
+                let o = new Orb(topY);
+                // Basit çakışma önleme (önceki orb'a çok yakın x olmasın diyeceğim ama
+                // hareketli orblarda bu çok önemli değil)
+                orbs.push(o);
+            }
+            if (orbs.length>0 && orbs[0].y-cameraY > height+400) orbs.shift();
+        }
+
+        function checkLevelUp() {
+            let nextLevelIndex = currentLevel + 1;
+            if (nextLevelIndex < THEMES.length) {
+                if (score >= THEMES[nextLevelIndex].threshold) {
+                    currentLevel = nextLevelIndex;
+                    updateTheme();
+                    triggerLevelUpEffect();
+                }
+            }
+        }
+
+        function updateTheme() {
+            let theme = THEMES[currentLevel];
+            document.body.style.backgroundColor = theme.bg;
+            
+            // UI Renklerini güncelle
+            document.getElementById('title-text').style.color = theme.main;
+            document.querySelector('#start-btn').style.borderColor = theme.main;
+            document.querySelector('#start-btn').style.color = theme.main;
+        }
+
+        function triggerLevelUpEffect() {
+            let msg = document.getElementById('level-up-msg');
+            let theme = THEMES[currentLevel];
+            
+            msg.innerText = theme.name;
+            msg.style.color = theme.main;
+            msg.style.textShadow = `0 0 30px ${theme.sec}`;
+            
+            // Animasyonu resetle ve oynat
+            msg.classList.remove('levelup-anim');
+            void msg.offsetWidth;
+            msg.classList.add('levelup-anim');
+            
+            document.getElementById('level-txt').innerText = theme.name;
+            AudioSystem.play('levelup');
+        }
+
+        function gameLoop() {
+            let theme = THEMES[currentLevel];
+            ctx.fillStyle = theme.bg;
+            ctx.fillRect(0,0,width,height);
+
+            // Arka plan efektleri (Yıldızlar)
+            ctx.fillStyle = 'white';
+            for(let i=0; i<20; i++) {
+                // Basit random noktalar (performans için static değil)
+                let sx = (Math.sin(i*132 + Date.now()*0.0001) * width + width)/2;
+                let sy = (Math.cos(i*43 + Date.now()*0.0001) * height + height)/2;
+                ctx.globalAlpha = 0.3;
+                ctx.fillRect(sx, sy, 2, 2);
+            }
+            ctx.globalAlpha = 1;
+
+            if (gameState === 'PLAYING') {
+                player.update();
+                let tCam = player.y - height/1.8;
+                if (tCam < cameraY) cameraY += (tCam-cameraY)*0.1;
+                
+                generateOrbs();
+                checkCollisions();
+            }
+
+            orbs.forEach(o=>{ o.update(); o.draw(); });
+            particles.forEach((p,i)=>{
+                p.update(); p.draw();
+                if(p.life<=0) particles.splice(i,1);
+            });
+
+            if (player && gameState !== 'GAMEOVER') player.draw();
+
+            requestAnimationFrame(gameLoop);
+        }
+
+        function checkCollisions() {
+            if (player.orbiting) return;
+            for (let orb of orbs) {
+                let dx = player.x - orb.x;
+                let dy = player.y - orb.y;
+                let distSq = dx*dx + dy*dy;
+                
+                if (distSq < orb.radius*orb.radius) {
+                    if (player.currentOrb !== orb) {
+                        player.orbiting = true;
+                        player.currentOrb = orb;
+                        player.angle = Math.atan2(dy, dx);
+                        
+                        score++;
+                        document.getElementById('score').innerText = score;
+                        let se = document.getElementById('score');
+                        se.classList.remove('active-score'); void se.offsetWidth; se.classList.add('active-score');
+                        
+                        createExplosion(player.x, player.y, THEMES[currentLevel].main);
+                        AudioSystem.play('score');
+                        checkLevelUp(); // Level kontrolü
+                        return;
+                    }
+                }
+            }
+        }
+
+        function createExplosion(x, y, color) {
+            for(let i=0; i<10; i++) particles.push(new Particle(x, y, color));
+        }
+
+        function endGame() {
+            gameState = 'GAMEOVER';
+            AudioSystem.play('die');
+            if(score>highScore) { highScore=score; localStorage.setItem('neonLeap2High', highScore); }
+            
+            document.getElementById('final-score').innerText = score;
+            document.getElementById('best-score').innerText = highScore;
+            document.getElementById('game-over-screen').classList.remove('hidden');
+            document.getElementById('ui-layer').classList.add('shake');
+            setTimeout(()=>document.getElementById('ui-layer').classList.remove('shake'), 500);
+        }
+
+        // --- INPUT ---
+        function startGame(e) {
+            if(e) e.stopPropagation();
+            AudioSystem.init();
+            initGame();
+            document.getElementById('start-screen').classList.add('hidden');
+            document.getElementById('tutorial').classList.remove('hidden');
+            setTimeout(()=>{
+                gameState='PLAYING';
+                setTimeout(()=>document.getElementById('tutorial').classList.add('hidden'), 2000);
+            }, 100);
+        }
+        function resetGame(e) {
+            if(e) e.stopPropagation();
+            document.getElementById('game-over-screen').classList.add('hidden');
+            initGame();
+            setTimeout(()=>{ gameState='PLAYING'; }, 100);
+        }
+        function input(e) {
+            if(gameState==='PLAYING' && player) player.jump();
+        }
+
+        window.addEventListener('resize', resize);
+        window.addEventListener('mousedown', e=>{ if(e.target.tagName!=='BUTTON') input(e); });
+        window.addEventListener('touchstart', e=>{ 
+            if(e.target.tagName!=='BUTTON') { 
+                if(e.cancelable) e.preventDefault(); 
+                input(e); 
+            } 
+        }, {passive:false});
+        window.addEventListener('keydown', e=>{ if(e.code==='Space') input(e); });
+
+        document.getElementById('start-btn').addEventListener('click', startGame);
+        document.getElementById('start-btn').addEventListener('touchend', (e)=>{e.preventDefault(); startGame(e);});
+        document.getElementById('restart-btn').addEventListener('click', resetGame);
+        document.getElementById('restart-btn').addEventListener('touchend', (e)=>{e.preventDefault(); resetGame(e);});
+
+        initGame();
+        gameLoop();
+    </script>
+</body>
+</html>
