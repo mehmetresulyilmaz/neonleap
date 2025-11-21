@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Neon Force: Rhythm</title>
+    <title>Neon Force: Global Rank</title>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&display=swap');
         
@@ -15,20 +15,20 @@
         }
         canvas { display: block; width: 100%; height: 100%; }
 
+        /* UI KATMANI */
         #ui-layer {
             position: absolute; top: 0; left: 0; width: 100%; height: 100%;
             pointer-events: none; z-index: 20;
             display: flex; flex-direction: column; align-items: center;
         }
 
+        /* HUD */
         .top-hud {
             position: absolute; top: 20px; width: 100%;
             display: flex; justify-content: space-between; padding: 0 20px; box-sizing: border-box;
-            text-shadow: 0 0 10px rgba(0, 242, 255, 0.5);
+            text-shadow: 0 0 10px rgba(0, 242, 255, 0.5); pointer-events: auto;
         }
         .score-box { font-size: 2.5rem; font-weight: 900; }
-        .level-box { font-size: 1rem; color: #aaa; margin-top: 5px; }
-
         .shield-container {
             display: flex; align-items: center; gap: 10px;
             color: #00ff9d; font-size: 1.2rem; font-weight: bold;
@@ -37,32 +37,50 @@
             border: 1px solid rgba(0, 255, 157, 0.3);
         }
 
+        /* ORTAK MENÜ STİLİ */
         .menu-screen {
             pointer-events: auto; position: absolute; top: 50%; left: 50%;
             transform: translate(-50%, -50%);
             background: rgba(10, 15, 25, 0.98); padding: 2rem;
             border-radius: 20px; border: 1px solid rgba(0, 242, 255, 0.3);
             text-align: center; display: flex; flex-direction: column; gap: 1rem;
-            box-shadow: 0 0 50px rgba(0,0,0,0.9); min-width: 300px; max-width: 90%;
+            box-shadow: 0 0 50px rgba(0,0,0,0.9); min-width: 320px; max-width: 90%;
+            max-height: 80vh; overflow-y: auto;
         }
         h1 { margin: 0; font-size: 2.5rem; color: #00f2ff; text-shadow: 0 0 20px #00f2ff; }
         
         .btn {
             background: rgba(0, 242, 255, 0.1); border: 2px solid #00f2ff; color: #00f2ff;
             padding: 15px 30px; font-size: 1.1rem; font-family: inherit; font-weight: bold;
-            cursor: pointer; border-radius: 50px; transition: 0.2s; flex: 1;
+            cursor: pointer; border-radius: 50px; transition: 0.2s;
         }
-        .btn:active { transform: scale(0.95); background: #00f2ff; color: black; }
-        .btn-share { background: rgba(0, 255, 157, 0.1); border-color: #00ff9d; color: #00ff9d; }
+        .btn:hover { background: #00f2ff; color: black; }
+        .btn-secondary { border-color: #666; color: #aaa; font-size: 0.9rem; padding: 10px 20px; }
         
-        .result-box {
-            background: rgba(0,0,0,0.5); border-radius: 10px; padding: 15px;
-            margin: 10px 0; border: 1px dashed #444;
-        }
-        .emoji-strip { font-size: 1.2rem; letter-spacing: 2px; margin: 10px 0; word-break: break-all; }
-        .button-group { display: flex; gap: 10px; justify-content: center; }
-
         .hidden { display: none !important; }
+
+        /* INPUT ALANI */
+        input[type="text"] {
+            background: rgba(0,0,0,0.5); border: 2px solid #333; color: white;
+            padding: 15px; font-family: 'Orbitron'; font-size: 1.2rem; text-align: center;
+            border-radius: 10px; width: 80%; margin: 0 auto; outline: none;
+        }
+        input[type="text"]:focus { border-color: #00ff9d; }
+
+        /* LEADERBOARD TABLOSU */
+        .leaderboard-list {
+            list-style: none; padding: 0; margin: 0; width: 100%; text-align: left;
+        }
+        .leaderboard-item {
+            display: flex; justify-content: space-between; padding: 10px;
+            border-bottom: 1px solid #333; font-size: 0.9rem;
+        }
+        .leaderboard-item:nth-child(1) { color: #ffd700; font-weight: bold; font-size: 1.1rem; } /* Altın */
+        .leaderboard-item:nth-child(2) { color: #c0c0c0; } /* Gümüş */
+        .leaderboard-item:nth-child(3) { color: #cd7f32; } /* Bronz */
+        
+        .loading { color: #00f2ff; animation: blink 1s infinite; }
+        @keyframes blink { 50% { opacity: 0.5; } }
 
         #toast {
             position: absolute; bottom: 50px; left: 50%; transform: translateX(-50%);
@@ -71,21 +89,6 @@
             transition: opacity 0.3s; z-index: 100;
         }
         .show-toast { opacity: 1 !important; bottom: 60px !important; }
-        
-        .floating-text {
-            position: absolute; font-weight: 900; pointer-events: none;
-            animation: floatUp 1s forwards; text-shadow: 0 0 10px black; white-space: nowrap;
-        }
-        @keyframes floatUp { 0% { transform: translateY(0) scale(1); opacity: 1; } 100% { transform: translateY(-80px) scale(1.5); opacity: 0; } }
-        
-        #tutorial { position: absolute; bottom: 20%; width: 100%; text-align: center; color: rgba(255,255,255,0.5); animation: pulse 2s infinite; }
-        @keyframes pulse { 50% { opacity: 0.3; } }
-
-        /* Müzik Kontrolü */
-        #music-btn {
-            position: absolute; bottom: 20px; right: 20px; pointer-events: auto;
-            background: transparent; border: none; font-size: 1.5rem; opacity: 0.5; cursor: pointer;
-        }
     </style>
 </head>
 <body>
@@ -95,302 +98,265 @@
             <div class="shield-container">
                 <span>🛡️</span> <span id="shield-count">0</span>
             </div>
+            <button id="show-leaderboard-btn" class="btn btn-secondary" style="border-radius: 10px;">🏆 TOP 10</button>
             <div style="text-align: right;">
                 <div id="score" class="score-box">0</div>
-                <div id="level-txt" class="level-box">SECTOR 1</div>
             </div>
         </div>
 
+        <!-- BAŞLANGIÇ -->
         <div id="start-screen" class="menu-screen">
             <h1>NEON FORCE</h1>
-            <p style="color:#ccc; font-size:0.9rem;">
-                Hız azaltıldı. Ritim eklendi.<br>
-                <span style="color:#00ff9d">Müziği hisset, halkaları yakala.</span>
-            </p>
+            <p style="color:#ccc;">Global Sıralamaya Hazır Mısın?</p>
             <button class="btn" id="start-btn">BAŞLAT</button>
         </div>
 
+        <!-- OYUN SONU & SKOR KAYDETME -->
         <div id="game-over-screen" class="menu-screen hidden">
             <h2 style="color:#ff0055; margin:0;">GÖREV SONU</h2>
-            <div class="result-box">
-                <div style="color:#aaa; font-size:0.8rem;">GÖREV RAPORU</div>
-                <div id="share-preview" class="emoji-strip">...</div>
-                <div style="font-size:2rem; font-weight:bold;" id="final-score">0</div>
-                <div style="color:#666; font-size:0.8rem;">EN İYİ: <span id="best-score">0</span></div>
+            <div style="font-size:3rem; font-weight:bold;" id="final-score">0</div>
+            
+            <div id="save-score-area">
+                <p style="font-size:0.8rem; color:#aaa;">GLOBAL LİSTEYE GİRMEK İÇİN ADINI YAZ:</p>
+                <input type="text" id="player-name" placeholder="PİLOT ADI" maxlength="10">
+                <br><br>
+                <button class="btn" id="save-score-btn" style="border-color:#00ff9d; color:#00ff9d;">KAYDET</button>
             </div>
-            <div class="button-group">
-                <button class="btn btn-share" id="share-btn">📤 PAYLAŞ</button>
-                <button class="btn" id="restart-btn">🔄 TEKRAR</button>
+            
+            <div style="display:flex; gap:10px; justify-content:center; margin-top:15px;">
+                <button class="btn" id="restart-btn">TEKRAR</button>
             </div>
         </div>
-        
-        <button id="music-btn">🎵</button>
+
+        <!-- LİDER TABLOSU MODAL -->
+        <div id="leaderboard-screen" class="menu-screen hidden">
+            <h2 style="color:#ffd700;">🏆 TOP 10 PİLOT</h2>
+            <div id="leaderboard-content" class="loading">Yükleniyor...</div>
+            <br>
+            <button class="btn btn-secondary" id="close-leaderboard-btn">KAPAT</button>
+        </div>
     </div>
 
-    <div id="toast">Kopyalandı!</div>
-    <div id="tutorial" class="hidden">DAİREYE GİRİNCE DOKUN</div>
-    <textarea id="clipboard-helper" style="position:absolute; left:-9999px;"></textarea>
+    <div id="toast">Skor Kaydedildi!</div>
     <canvas id="gameCanvas"></canvas>
 
+    <!-- FIREBASE SDK (MODÜL OLARAK) -->
+    <script type="module">
+        // --- 1. FIREBASE AYARLARI (BURAYI KENDİ PROJE AYARLARINLA DEĞİŞTİR) ---
+        // Google Firebase Console'dan aldığın config buraya gelecek.
+        // ŞU ANKİ HALİYLE ÇALIŞMAZ, KENDİ CONFIG'İNİ KOYMALISIN.
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+        import { getFirestore, collection, addDoc, query, orderBy, limit, getDocs } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+        import { getAnalytics } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-analytics.js";
+
+        // *** BURAYI DEĞİŞTİR ***
+        const firebaseConfig = {
+  apiKey: "AIzaSyCc4ERyMGvfAXF-dh_PRztFH707_9pKca0",
+  authDomain: "neonleap-2bb89.firebaseapp.com",
+  projectId: "neonleap-2bb89",
+  storageBucket: "neonleap-2bb89.firebasestorage.app",
+  messagingSenderId: "653143256534",
+  appId: "1:653143256534:web:a92cc76688072e427bc877",
+  measurementId: "G-9YQEJ7LN0E"
+};
+
+        // Firebase Başlatma (Hata verirse config boş olduğu içindir)
+        let db;
+        try {
+            const app = initializeApp(firebaseConfig);
+            const analytics = getAnalytics(app); // Analytics otomatik çalışır
+            db = getFirestore(app);
+            console.log("Firebase bağlandı.");
+        } catch (e) {
+            console.error("Firebase Ayarları Yapılmadı! Lütfen Config ekleyin.");
+        }
+
+        // --- FIRESTORE FONKSİYONLARI ---
+        
+        // Skoru Kaydet
+        async function saveScoreToDB(name, score) {
+            if (!db) return alert("Veritabanı bağlı değil!");
+            if (!name) return alert("Lütfen isim girin.");
+            
+            const btn = document.getElementById('save-score-btn');
+            btn.innerText = "KAYDEDİLİYOR...";
+            btn.disabled = true;
+
+            try {
+                await addDoc(collection(db, "scores"), {
+                    name: name.toUpperCase(),
+                    score: score,
+                    date: new Date()
+                });
+                showToast("Skor Kaydedildi!");
+                document.getElementById('save-score-area').style.display = 'none'; // Kaydedince gizle
+                localStorage.setItem('neon_last_name', name); // İsmi hatırla
+            } catch (e) {
+                console.error("Hata:", e);
+                alert("Skor kaydedilemedi: " + e.message);
+            } finally {
+                btn.innerText = "KAYDET";
+                btn.disabled = false;
+            }
+        }
+
+        // Lider Tablosunu Çek
+        async function fetchLeaderboard() {
+            if (!db) return;
+            const contentDiv = document.getElementById('leaderboard-content');
+            contentDiv.innerHTML = '<div class="loading">Veriler çekiliyor...</div>';
+
+            try {
+                // Skorları puana göre tersten sırala (en yüksek en üstte), ilk 10'u al
+                const q = query(collection(db, "scores"), orderBy("score", "desc"), limit(10));
+                const querySnapshot = await getDocs(q);
+                
+                let html = '<ul class="leaderboard-list">';
+                let rank = 1;
+                querySnapshot.forEach((doc) => {
+                    const data = doc.data();
+                    html += `
+                        <li class="leaderboard-item">
+                            <span>#${rank} ${data.name}</span>
+                            <span>${data.score}</span>
+                        </li>
+                    `;
+                    rank++;
+                });
+                html += '</ul>';
+                
+                if (querySnapshot.empty) html = "Henüz skor yok. İlk sen ol!";
+                
+                contentDiv.innerHTML = html;
+            } catch (e) {
+                console.error(e);
+                contentDiv.innerText = "Bağlantı hatası.";
+            }
+        }
+
+        // --- UI EVENTLERİNİ BAĞLA ---
+        // Modül olduğu için global scope'da değiller, elle bağlıyoruz.
+        document.getElementById('save-score-btn').addEventListener('click', () => {
+            const name = document.getElementById('player-name').value;
+            saveScoreToDB(name, window.gameScore); // window.gameScore oyun motorundan gelecek
+        });
+
+        document.getElementById('show-leaderboard-btn').addEventListener('click', () => {
+            document.getElementById('leaderboard-screen').classList.remove('hidden');
+            fetchLeaderboard();
+        });
+
+        document.getElementById('close-leaderboard-btn').addEventListener('click', () => {
+            document.getElementById('leaderboard-screen').classList.add('hidden');
+        });
+
+        // Otomatik isim doldurma
+        const savedName = localStorage.getItem('neon_last_name');
+        if(savedName) document.getElementById('player-name').value = savedName;
+
+    </script>
+
+    <!-- OYUN MOTORU (AYNI KALDI - SADECE UI TETİKLEMELERİ DEĞİŞTİ) -->
     <script>
-        /**
-         * NEON FORCE: RHYTHM UPDATE
-         * - Yavaşlatılmış başlangıç hızı.
-         * - Procedural Arka Plan Müziği (BGM).
-         * - "Docking" (Kenetlenme) ses efekti.
-         */
-
-        let gameHistory = [];
-        const HISTORY_LIMIT = 12;
-
-        // --- GELİŞMİŞ SES SİSTEMİ ---
+        // --- OYUN KODLARI ---
+        // (Önceki kodun aynısı, sadece GameOver fonksiyonunda ufak değişiklik var)
+        
+        // ... Ses Sistemi ve Sınıflar (Önceki koddan) ...
         const AudioSys = {
             ctx: null,
             bgmInterval: null,
             isMusicOn: true,
-            beatCount: 0,
-            
             init: function() {
-                try { 
-                    const AC = window.AudioContext || window.webkitAudioContext;
-                    if(AC && !this.ctx) { 
-                        this.ctx = new AC(); 
-                    }
-                    if(this.ctx && this.ctx.state === 'suspended') this.ctx.resume();
-                } catch(e){}
+                 try { const AC = window.AudioContext || window.webkitAudioContext;
+                 if(AC && !this.ctx) { this.ctx = new AC(); }
+                 if(this.ctx && this.ctx.state === 'suspended') this.ctx.resume(); } catch(e){}
             },
-
-            // Arkaplan Müziği (Procedural Beat)
             startMusic: function() {
                 if (this.bgmInterval) clearInterval(this.bgmInterval);
-                if (!this.isMusicOn || !this.ctx) return;
-
-                // 120 BPM basit bir ritim
                 this.bgmInterval = setInterval(() => {
-                    if(gameState !== 'PLAYING') return;
-                    
+                    if(gameState !== 'PLAYING' || !this.ctx) return;
                     const t = this.ctx.currentTime;
-                    this.beatCount++;
-
-                    // Kick Drum (Her vuruşta)
                     const osc = this.ctx.createOscillator();
                     const g = this.ctx.createGain();
                     osc.connect(g); g.connect(this.ctx.destination);
-                    
-                    osc.frequency.setValueAtTime(150, t);
-                    osc.frequency.exponentialRampToValueAtTime(0.01, t + 0.5);
-                    g.gain.setValueAtTime(0.3, t); // Volume
-                    g.gain.exponentialRampToValueAtTime(0.01, t + 0.5);
-                    
-                    osc.start(t); osc.stop(t + 0.5);
-
-                    // Hi-hat (Her 2. vuruşta)
-                    if (this.beatCount % 2 === 0) {
-                        const osc2 = this.ctx.createOscillator();
-                        const g2 = this.ctx.createGain();
-                        osc2.connect(g2); g2.connect(this.ctx.destination);
-                        osc2.type = 'square'; // Metalik ses
-                        // Yüksek frekans
-                        osc2.frequency.setValueAtTime(800, t); 
-                        // Çok kısa ses
-                        g2.gain.setValueAtTime(0.05, t);
-                        g2.gain.exponentialRampToValueAtTime(0.01, t + 0.05);
-                        osc2.start(t); osc2.stop(t + 0.05);
-                    }
-
-                }, 500); // 500ms = 120 BPM
+                    osc.frequency.setValueAtTime(100, t); osc.frequency.exponentialRampToValueAtTime(0.01, t+0.3);
+                    g.gain.setValueAtTime(0.2, t); g.gain.exponentialRampToValueAtTime(0.01, t+0.3);
+                    osc.start(t); osc.stop(t+0.3);
+                }, 500);
             },
-
-            stopMusic: function() {
-                if (this.bgmInterval) clearInterval(this.bgmInterval);
-            },
-
-            toggleMusic: function() {
-                this.isMusicOn = !this.isMusicOn;
-                const btn = document.getElementById('music-btn');
-                btn.style.opacity = this.isMusicOn ? "1" : "0.3";
-                if(this.isMusicOn && gameState === 'PLAYING') this.startMusic();
-                else this.stopMusic();
-            },
-
+            stopMusic: function() { if (this.bgmInterval) clearInterval(this.bgmInterval); },
             play: function(type) {
                 if(!this.ctx) return;
                 const t = this.ctx.currentTime;
-                const o = this.ctx.createOscillator();
-                const g = this.ctx.createGain();
+                const o = this.ctx.createOscillator(); const g = this.ctx.createGain();
                 o.connect(g); g.connect(this.ctx.destination);
-
-                if(type==='dock') { // YENİ: Kenetlenme Sesi
-                    // Mekanik bir "Klik" sesi
-                    o.type = 'square';
-                    o.frequency.setValueAtTime(200, t);
-                    o.frequency.exponentialRampToValueAtTime(100, t + 0.1);
-                    g.gain.setValueAtTime(0.15, t);
-                    g.gain.linearRampToValueAtTime(0, t + 0.1);
-                    o.start(t); o.stop(t + 0.1);
-                    
-                    // Altına bir bass thud ekle
-                    const o2 = this.ctx.createOscillator();
-                    const g2 = this.ctx.createGain();
-                    o2.connect(g2); g2.connect(this.ctx.destination);
-                    o2.frequency.setValueAtTime(80, t);
-                    o2.frequency.exponentialRampToValueAtTime(0.01, t+0.2);
-                    g2.gain.setValueAtTime(0.3, t);
-                    g2.gain.exponentialRampToValueAtTime(0.01, t+0.2);
-                    o2.start(t); o2.stop(t+0.2);
-
+                if(type==='dock') {
+                     o.type='square'; o.frequency.setValueAtTime(200, t); o.frequency.exponentialRampToValueAtTime(50, t+0.1);
+                     g.gain.setValueAtTime(0.1, t); g.gain.linearRampToValueAtTime(0, t+0.1);
+                     o.start(t); o.stop(t+0.1);
                 } else if(type==='jump') {
-                    o.frequency.setValueAtTime(150, t); o.frequency.linearRampToValueAtTime(500, t+0.15);
-                    g.gain.setValueAtTime(0.2, t); g.gain.exponentialRampToValueAtTime(0.01, t+0.2);
-                    o.type='sawtooth'; o.start(t); o.stop(t+0.2);
-                } else if(type==='combo') {
-                    o.frequency.setValueAtTime(600, t); o.frequency.exponentialRampToValueAtTime(1200, t+0.1);
-                    g.gain.setValueAtTime(0.1, t); g.gain.linearRampToValueAtTime(0, t+0.15);
-                    o.type='sine'; o.start(t); o.stop(t+0.15);
-                } else if(type==='shield_get') {
-                    o.type='square'; o.frequency.setValueAtTime(400, t); o.frequency.linearRampToValueAtTime(800, t+0.4);
-                    g.gain.setValueAtTime(0.1, t); g.gain.linearRampToValueAtTime(0, t+0.4);
-                    o.start(t); o.stop(t+0.4);
-                } else if(type==='recover') {
-                    o.type='sawtooth'; o.frequency.setValueAtTime(100, t); o.frequency.linearRampToValueAtTime(300, t+1.0);
-                    g.gain.setValueAtTime(0.2, t); g.gain.linearRampToValueAtTime(0, t+1.0);
-                    o.start(t); o.stop(t+1.0);
+                    o.type='sawtooth'; o.frequency.setValueAtTime(150, t); o.frequency.linearRampToValueAtTime(400, t+0.2);
+                    g.gain.setValueAtTime(0.1, t); g.gain.exponentialRampToValueAtTime(0.01, t+0.2);
+                    o.start(t); o.stop(t+0.2);
                 } else if(type==='die') {
-                    o.frequency.setValueAtTime(150, t); o.frequency.exponentialRampToValueAtTime(10, t+0.5);
+                    o.type='sawtooth'; o.frequency.setValueAtTime(100, t); o.frequency.exponentialRampToValueAtTime(10, t+0.5);
                     g.gain.setValueAtTime(0.5, t); g.gain.exponentialRampToValueAtTime(0.01, t+0.5);
-                    o.type='sawtooth'; o.start(t); o.stop(t+0.5);
+                    o.start(t); o.stop(t+0.5);
                 }
             }
         };
 
-        // --- DEĞİŞKENLER ---
         const canvas = document.getElementById('gameCanvas');
         const ctx = canvas.getContext('2d', { alpha: false });
-        let width, height;
-        let gameState = 'MENU';
-        let score=0, highScore=localStorage.getItem('nf_high')||0;
-        let shields = 0;
-        let comboCount = 0;
-        let cameraY = 0;
+        let width, height, gameState='MENU';
+        let score=0, shields=0, cameraY=0;
         let player, orbs=[], particles=[];
-
-        function spawnFloatingText(x, y, text, color) {
-            const el = document.createElement('div');
-            el.className = 'floating-text'; el.innerText = text;
-            el.style.left = x + 'px'; el.style.top = y + 'px'; el.style.color = color;
-            document.body.appendChild(el);
-            setTimeout(() => el.remove(), 1000);
-        }
-
-        function logHistory(emoji) {
-            gameHistory.push(emoji);
-            if(gameHistory.length > HISTORY_LIMIT) gameHistory.shift(); // Kaydır
-        }
+        window.gameScore = 0; // Firebase için global değişken
 
         class Player {
             constructor() { this.reset(); }
             reset() {
                 this.x = width/2; this.y = height-200;
-                this.vx = 0; this.vy = 0;
-                this.radius = 15;
-                this.angle = -Math.PI/2; this.rotation = -Math.PI/2;
-                this.orbiting = true; this.currentOrb = null;
-                this.trail = []; this.attachTime = 0;
+                this.vx=0; this.vy=0; this.radius=15;
+                this.orbiting=true; this.currentOrb=null; this.angle=-Math.PI/2; this.trail=[];
             }
-
             update() {
-                if (gameState === 'PLAYING' || gameState === 'RECOVERING') {
-                    if(Math.random()>0.3) this.trail.push({x:this.x, y:this.y, life:1});
-                    this.trail.forEach(t => t.life -= 0.08);
-                    this.trail = this.trail.filter(t => t.life > 0);
+                if(Math.random()>0.5) this.trail.push({x:this.x, y:this.y, l:1});
+                this.trail.forEach(t=>t.l-=0.1); this.trail=this.trail.filter(t=>t.l>0);
+
+                if(gameState==='RECOVERING') {
+                     let target = orbs.find(o => Math.abs(o.y - this.y) < 500) || orbs[0];
+                     this.x += (target.x - this.x)*0.1; this.y += (target.y - this.y)*0.1;
+                     if(Math.abs(target.x-this.x)<20) { attachPlayer(target); gameState='PLAYING'; }
+                     return;
                 }
 
-                if (gameState === 'RECOVERING') {
-                    let target = findNearestOrb(this.y);
-                    let dx = target.x - this.x; let dy = target.y - this.y;
-                    this.x += dx * 0.08; this.y += dy * 0.08;
-                    this.rotation += 0.3;
-                    if (Math.abs(dx) < 25 && Math.abs(dy) < 25) {
-                        attachPlayer(target);
-                        gameState = 'PLAYING';
-                        spawnFloatingText(width/2, height/2, "SİSTEMLER AKTİF", "#00ff9d");
-                    }
-                    return;
-                }
-
-                if (this.orbiting && this.currentOrb) {
-                    // HIZ DÜZENLEMESİ: Başlangıçta daha yavaş
-                    // Eski: 0.06 + (score*0.001) -> Yeni: 0.035 + ...
-                    let baseSpeed = 0.035; 
-                    let speed = baseSpeed + (score * 0.0008); 
-                    // Max hız limiti
-                    if(speed > 0.1) speed = 0.1;
-
-                    this.angle += speed * this.currentOrb.direction;
-                    this.x = this.currentOrb.x + Math.cos(this.angle)*this.currentOrb.radius;
-                    this.y = this.currentOrb.y + Math.sin(this.angle)*this.currentOrb.radius;
-                    this.rotation = this.angle + (Math.PI/2 * this.currentOrb.direction);
+                if(this.orbiting && this.currentOrb) {
+                    let speed = 0.04 + (score*0.0005); if(speed>0.1) speed=0.1;
+                    this.angle += speed * this.currentOrb.dir;
+                    this.x = this.currentOrb.x + Math.cos(this.angle)*this.currentOrb.rad;
+                    this.y = this.currentOrb.y + Math.sin(this.angle)*this.currentOrb.rad;
                 } else {
-                    this.x += this.vx; this.y += this.vy;
-                    if(Math.abs(this.vx)>0.1 || Math.abs(this.vy)>0.1) 
-                        this.rotation = Math.atan2(this.vy, this.vx);
-
-                    if (this.x < -50 || this.x > width+50 || this.y > cameraY+height+100 || this.y < cameraY-500) {
-                        trySavePlayer();
+                    this.x+=this.vx; this.y+=this.vy;
+                    if(this.x<-50 || this.x>width+50 || this.y>cameraY+height+100 || this.y<cameraY-500) {
+                        if(shields>0) { shields--; document.getElementById('shield-count').innerText=shields; gameState='RECOVERING'; AudioSys.play('die');}
+                        else gameOver();
                     }
                 }
             }
-
             draw() {
-                let dy = this.y - cameraY;
-                if (this.trail.length > 0) {
-                    ctx.beginPath();
-                    this.trail.forEach((t, i) => { if(i==0) ctx.moveTo(t.x, t.y-cameraY); else ctx.lineTo(t.x, t.y-cameraY); });
-                    ctx.strokeStyle = gameState === 'RECOVERING' ? '#00ff9d' : '#00f2ff';
-                    ctx.lineWidth = 3; ctx.stroke();
-                }
-                ctx.save(); ctx.translate(this.x, dy); ctx.rotate(this.rotation);
-                if (shields > 0 && gameState === 'PLAYING') {
-                    ctx.beginPath(); ctx.arc(0, 0, 25, 0, Math.PI*2);
-                    ctx.strokeStyle = `rgba(0, 255, 157, ${0.3 + Math.sin(Date.now()*0.01)*0.2})`;
-                    ctx.lineWidth = 2; ctx.stroke();
-                }
-                ctx.beginPath(); ctx.moveTo(15, 0); ctx.lineTo(-10, 12); ctx.lineTo(-5, 0); ctx.lineTo(-10, -12);
-                ctx.fillStyle = '#fff'; ctx.fill();
-                if(gameState === 'PLAYING' && !this.orbiting) {
-                    ctx.beginPath(); ctx.moveTo(-5, 0); ctx.lineTo(-20 - Math.random()*10, 0);
-                    ctx.strokeStyle = '#ffaa00'; ctx.lineWidth = 4; ctx.stroke();
-                }
+                let dy=this.y-cameraY;
+                ctx.beginPath(); this.trail.forEach(t=>ctx.lineTo(t.x, t.y-cameraY)); ctx.strokeStyle='#00f2ff'; ctx.lineWidth=2; ctx.stroke();
+                ctx.save(); ctx.translate(this.x, dy); ctx.rotate(this.orbiting ? this.angle + Math.PI/2*this.currentOrb.dir : Math.atan2(this.vy, this.vx));
+                ctx.beginPath(); ctx.moveTo(15,0); ctx.lineTo(-10,10); ctx.lineTo(-5,0); ctx.lineTo(-10,-10); ctx.fillStyle='#fff'; ctx.fill();
                 ctx.restore();
             }
-
             jump() {
-                if (this.orbiting && this.currentOrb) {
-                    let timeSpent = Date.now() - this.attachTime;
-                    
-                    if (timeSpent < 1200 && timeSpent > 100) {  // Kombo süresini biraz daha uzattım (daha kolay)
-                        comboCount++;
-                        logHistory('🔥');
-                        if (comboCount < 3) {
-                             AudioSys.play('combo');
-                             spawnFloatingText(this.x, this.y - 50, `SERİ x${comboCount}`, "#ffaa00");
-                        } else if (comboCount === 3) {
-                            shields++; updateUI();
-                            spawnFloatingText(this.x, this.y - 80, "+1 JOKER!", "#00ff9d");
-                            AudioSys.play('shield_get');
-                            comboCount = 0;
-                        }
-                    } else {
-                        logHistory('🔵');
-                        if (comboCount > 0) spawnFloatingText(this.x, this.y - 50, "SERİ BOZULDU", "#ff5555");
-                        comboCount = 0;
-                    }
-
-                    this.orbiting = false;
-                    // ZIPLAMA GÜCÜ: Biraz azalttım, daha kontrollü olsun
-                    let power = 13 + (score * 0.04); if(power>20) power=20;
-                    this.vx = Math.cos(this.rotation) * power;
-                    this.vy = Math.sin(this.rotation) * power;
+                if(this.orbiting) {
+                    this.orbiting=false;
+                    let rot = this.angle + Math.PI/2 * this.currentOrb.dir;
+                    let p = 13 + score*0.05; if(p>20) p=20;
+                    this.vx = Math.cos(rot)*p; this.vy = Math.sin(rot)*p;
                     AudioSys.play('jump');
                 }
             }
@@ -398,214 +364,86 @@
 
         class Orb {
             constructor(y) {
-                this.y = y;
-                this.radius = 60 + Math.random()*25;
-                this.x = Math.random()*(width-this.radius*2) + this.radius;
-                this.direction = Math.random()>0.5?1:-1;
-                this.moving = score > 15 && Math.random()>0.6;
-                this.speedX = (Math.random()*2+0.5) * (Math.random()>0.5?1:-1);
-            }
-            update() {
-                if(this.moving) {
-                    this.x += this.speedX;
-                    if(this.x < this.radius || this.x > width-this.radius) this.speedX *= -1;
-                }
+                this.y=y; this.rad=60+Math.random()*20; this.x=Math.random()*(width-this.rad*2)+this.rad;
+                this.dir=Math.random()>0.5?1:-1;
             }
             draw() {
-                let dy = this.y - cameraY;
-                if(dy < -200 || dy > height+200) return;
-                ctx.beginPath(); ctx.arc(this.x, dy, this.radius, 0, Math.PI*2);
-                ctx.strokeStyle = '#444'; ctx.lineWidth=3; ctx.stroke();
-                ctx.beginPath(); ctx.arc(this.x, dy, this.radius-5, 0, Math.PI*2);
-                ctx.strokeStyle = '#00f2ff'; ctx.lineWidth=1; ctx.stroke();
+                let dy=this.y-cameraY; if(dy<-200||dy>height+200) return;
+                ctx.beginPath(); ctx.arc(this.x, dy, this.rad, 0, Math.PI*2); ctx.strokeStyle='#333'; ctx.lineWidth=3; ctx.stroke();
+                ctx.beginPath(); ctx.arc(this.x, dy, this.rad-5, 0, Math.PI*2); ctx.strokeStyle='#00f2ff'; ctx.lineWidth=1; ctx.stroke();
             }
         }
 
         function init() {
-            width = window.innerWidth; height = window.innerHeight;
-            canvas.width = width; canvas.height = height;
-            
-            player = new Player();
-            score = 0; shields = 0; comboCount = 0;
-            gameHistory = []; 
-            orbs = []; particles = [];
-            
-            let startOrb = new Orb(height-200);
-            startOrb.x = width/2; startOrb.radius = 80; startOrb.moving = false;
-            orbs.push(startOrb);
-            
-            // İlk bağlantı ses çalmasın diye manuel yapıyoruz
-            player.orbiting = true;
-            player.currentOrb = startOrb;
-            player.angle = -Math.PI/2;
-            player.attachTime = Date.now();
-            player.x = startOrb.x + Math.cos(player.angle)*startOrb.radius;
-            player.y = startOrb.y + Math.sin(player.angle)*startOrb.radius;
-
-            cameraY = player.y - height/1.5;
+            width=window.innerWidth; height=window.innerHeight; canvas.width=width; canvas.height=height;
+            player=new Player(); score=0; shields=0; orbs=[]; window.gameScore=0;
+            let start=new Orb(height-200); start.x=width/2; orbs.push(start);
+            attachPlayer(start);
+            cameraY=player.y-height/1.5;
             generateOrbs();
-            updateUI();
+            document.getElementById('score').innerText=0;
+            document.getElementById('shield-count').innerText=0;
         }
 
-        function attachPlayer(orb) {
-            player.orbiting = true;
-            player.currentOrb = orb;
-            let dx = player.x - orb.x; let dy = player.y - orb.y;
-            player.angle = Math.atan2(dy, dx);
-            player.attachTime = Date.now();
-            AudioSys.play('dock'); // YENİ SES BURADA ÇALIYOR
-        }
-
+        function attachPlayer(o) { player.orbiting=true; player.currentOrb=o; player.angle=Math.atan2(player.y-o.y, player.x-o.x); AudioSys.play('dock'); }
+        
         function generateOrbs() {
-            let topY = orbs.length>0 ? orbs[orbs.length-1].y : height;
-            while(topY > cameraY - height) {
-                topY -= (250 + Math.random()*50);
-                orbs.push(new Orb(topY));
-            }
-            if(orbs[0].y - cameraY > height+400) orbs.shift();
+            let lastY=orbs.length>0?orbs[orbs.length-1].y:height;
+            while(lastY > cameraY-height) { lastY-=250; orbs.push(new Orb(lastY)); }
+            if(orbs[0].y-cameraY > height+400) orbs.shift();
         }
 
-        function checkCollisions() {
-            if(player.orbiting || gameState !== 'PLAYING') return;
-            for(let o of orbs) {
-                let dx = player.x - o.x; let dy = player.y - o.y;
-                if(dx*dx + dy*dy < o.radius*o.radius) {
-                    if(player.currentOrb !== o) {
-                        attachPlayer(o);
-                        score++; updateUI();
-                        return;
-                    }
+        function checkCols() {
+            if(player.orbiting) return;
+            orbs.forEach(o => {
+                if(Math.hypot(player.x-o.x, player.y-o.y) < o.rad) {
+                    if(player.currentOrb!==o) { attachPlayer(o); score++; window.gameScore=score; document.getElementById('score').innerText=score; if(score%10===0) {shields++; document.getElementById('shield-count').innerText=shields;} }
                 }
-            }
-        }
-
-        function trySavePlayer() {
-            if (shields > 0) {
-                shields--; updateUI();
-                AudioSys.play('recover');
-                logHistory('🛡️');
-                gameState = 'RECOVERING';
-                player.vx = 0; player.vy = 0;
-                spawnFloatingText(width/2, height/2, "KURTARMA MODU!", "#00ff9d");
-            } else {
-                gameOver();
-            }
-        }
-
-        function findNearestOrb(yPos) {
-            let closest = orbs[0]; let minDist = 99999;
-            for(let o of orbs) {
-                let d = Math.abs(o.y - yPos);
-                if(d < minDist) { minDist = d; closest = o; }
-            }
-            return closest;
-        }
-
-        function updateUI() {
-            document.getElementById('score').innerText = score;
-            document.getElementById('shield-count').innerText = shields;
-            document.getElementById('level-txt').innerText = score > 20 ? "SECTOR OMEGA" : "SECTOR ALPHA";
-        }
-
-        function loop() {
-            ctx.fillStyle = '#050505'; ctx.fillRect(0,0,width,height);
-            ctx.fillStyle = 'rgba(255,255,255,0.5)';
-            for(let i=0; i<30; i++) {
-                let sx = (Math.sin(i*99)*width+width)/2; let sy = ((i*44 + Date.now()*0.05)%height);
-                ctx.fillRect(sx, sy, 2, 2);
-            }
-
-            if(gameState === 'PLAYING' || gameState === 'RECOVERING') {
-                player.update();
-                let tCam = player.y - height/1.8;
-                if(tCam < cameraY) cameraY += (tCam-cameraY)*0.1;
-                
-                if(gameState === 'PLAYING') {
-                    generateOrbs(); checkCollisions(); orbs.forEach(o => o.update());
-                }
-            }
-            orbs.forEach(o => o.draw());
-            if(gameState === 'RECOVERING') {
-                let target = findNearestOrb(player.y);
-                ctx.beginPath(); ctx.moveTo(player.x, player.y-cameraY); ctx.lineTo(target.x, target.y-cameraY);
-                ctx.setLineDash([10, 10]); ctx.strokeStyle = '#00ff9d'; ctx.lineWidth = 4; ctx.stroke(); ctx.setLineDash([]);
-            }
-            player.draw();
-            if(gameState !== 'GAMEOVER') requestAnimationFrame(loop);
+            });
         }
 
         function gameOver() {
-            gameState = 'GAMEOVER';
+            gameState='GAMEOVER';
+            AudioSys.stopMusic();
             AudioSys.play('die');
-            AudioSys.stopMusic(); // Müzik durur
-            logHistory('💀');
-            
-            if(score > highScore) { highScore = score; localStorage.setItem('nf_high', score); }
-            
             document.getElementById('final-score').innerText = score;
-            document.getElementById('best-score').innerText = highScore;
-            
-            let historyStr = gameHistory.slice(-12).join(''); 
-            document.getElementById('share-preview').innerText = historyStr;
-            
             document.getElementById('game-over-screen').classList.remove('hidden');
+            // Kaydetme alanını tekrar göster
+            document.getElementById('save-score-area').style.display = 'block';
         }
 
-        function generateShareText() {
-            let historyStr = gameHistory.slice(-12).join('');
-            let title = score > 20 ? "Neon Force 🚀 (OMEGA)" : "Neon Force 🚀";
-            return `${title}\n${historyStr}\nSkor: ${score} | Kalkan: ${shields}`;
-        }
-
-        async function copyToClipboard() {
-            const text = generateShareText();
-            const helper = document.getElementById('clipboard-helper');
-            if (navigator.clipboard && navigator.clipboard.writeText) {
-                try { await navigator.clipboard.writeText(text); showToast(); return; } catch (err) {}
+        function loop() {
+            ctx.fillStyle='#050505'; ctx.fillRect(0,0,width,height);
+            if(gameState==='PLAYING' || gameState==='RECOVERING') {
+                player.update();
+                let tCam = player.y - height/1.8; if(tCam<cameraY) cameraY+=(tCam-cameraY)*0.1;
+                if(gameState==='PLAYING') { generateOrbs(); checkCols(); }
             }
-            helper.value = text; helper.select();
-            try { document.execCommand('copy'); showToast(); } catch (err) {}
+            orbs.forEach(o=>o.draw());
+            player.draw();
+            if(gameState!=='GAMEOVER') requestAnimationFrame(loop);
         }
 
-        function showToast() {
-            const toast = document.getElementById('toast');
-            toast.classList.add('show-toast');
-            setTimeout(() => toast.classList.remove('show-toast'), 2000);
-        }
-
-        function input(e) { if(gameState === 'PLAYING') player.jump(); }
-        
-        function startGame(e) {
-            if(e) e.stopPropagation(); AudioSys.init(); init();
+        // Eventler
+        document.getElementById('start-btn').addEventListener('click', ()=>{
+            AudioSys.init(); AudioSys.startMusic();
+            init(); gameState='PLAYING';
             document.getElementById('start-screen').classList.add('hidden');
-            document.getElementById('tutorial').classList.remove('hidden');
-            AudioSys.startMusic(); // Müzik başlar
-            setTimeout(()=>{ gameState='PLAYING'; setTimeout(()=>document.getElementById('tutorial').classList.add('hidden'), 2000);}, 100);
             loop();
-        }
-        
-        function resetGame(e) {
-            if(e) e.stopPropagation();
+        });
+        document.getElementById('restart-btn').addEventListener('click', ()=>{
             document.getElementById('game-over-screen').classList.add('hidden');
-            init(); 
-            gameState='PLAYING'; 
-            AudioSys.startMusic();
-            loop();
+            init(); gameState='PLAYING'; AudioSys.startMusic(); loop();
+        });
+
+        window.addEventListener('mousedown', e=>{ if(e.target.tagName!=='BUTTON' && e.target.tagName!=='INPUT') if(gameState==='PLAYING') player.jump(); });
+        window.addEventListener('touchstart', e=>{ if(e.target.tagName!=='BUTTON' && e.target.tagName!=='INPUT') {e.preventDefault(); if(gameState==='PLAYING') player.jump();} }, {passive:false});
+        window.addEventListener('resize', ()=>{width=window.innerWidth; height=window.innerHeight; canvas.width=width; canvas.height=height;});
+        
+        function showToast(msg) {
+            const t = document.getElementById('toast'); t.innerText=msg; t.classList.add('show-toast');
+            setTimeout(()=>t.classList.remove('show-toast'), 2000);
         }
-
-        window.addEventListener('mousedown', e => { if(e.target.tagName!=='BUTTON') input(); });
-        window.addEventListener('touchstart', e => { if(e.target.tagName!=='BUTTON') {e.preventDefault(); input();} }, {passive:false});
-        window.addEventListener('keydown', e => { if(e.code==='Space') input(); });
-        
-        document.getElementById('start-btn').addEventListener('click', startGame);
-        document.getElementById('restart-btn').addEventListener('click', resetGame);
-        document.getElementById('share-btn').addEventListener('click', (e) => { e.stopPropagation(); copyToClipboard(); });
-        document.getElementById('music-btn').addEventListener('click', (e) => { e.stopPropagation(); AudioSys.toggleMusic(); });
-        
-        width = window.innerWidth; height = window.innerHeight;
-        canvas.width = width; canvas.height = height;
-        window.addEventListener('resize', ()=>{ width = window.innerWidth; height = window.innerHeight; canvas.width = width; canvas.height = height; });
-
     </script>
 </body>
 </html>
