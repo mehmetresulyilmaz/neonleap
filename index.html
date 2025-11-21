@@ -125,14 +125,14 @@
             100% { opacity: 0; transform: scale(1.5) translateY(-50px); }
         }
 
-        /* SES KONTROL BUTONLARI GRUBU */
+        /* SES KONTROLLERİ */
         .audio-controls {
             position: absolute; bottom: 20px; right: 20px; pointer-events: auto;
             display: flex; gap: 15px; z-index: 30;
         }
         .audio-btn {
             background: transparent; border: none; font-size: 1.8rem; opacity: 0.7; cursor: pointer;
-            transition: transform 0.2s;
+            transition: transform 0.2s; color: white;
         }
         .audio-btn:hover { opacity: 1; transform: scale(1.1); }
         .audio-off { opacity: 0.3; filter: grayscale(100%); }
@@ -215,7 +215,6 @@
             <button class="btn btn-secondary" id="close-leaderboard-btn">KAPAT</button>
         </div>
         
-        <!-- SES KONTROLLERİ -->
         <div class="audio-controls">
             <button id="sfx-btn" class="audio-btn" title="Ses Efektleri">🔊</button>
             <button id="music-btn" class="audio-btn" title="Müzik">🎵</button>
@@ -232,6 +231,7 @@
         import { getFirestore, collection, addDoc, query, orderBy, limit, getDocs } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
         import { getAnalytics } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-analytics.js";
 
+        // SENİN VERDİĞİN API ANAHTARLARI
         const firebaseConfig = {
           apiKey: "AIzaSyCc4ERyMGvfAXF-dh_PRztFH707_9pKca0",
           authDomain: "neonleap-2bb89.firebaseapp.com",
@@ -247,10 +247,10 @@
             const app = initializeApp(firebaseConfig); 
             const analytics = getAnalytics(app); 
             db = getFirestore(app); 
-        } catch(e){ console.error(e); }
+        } catch(e){ console.error("Firebase Init Hatası:", e); }
 
         async function saveScoreToDB(name, score) {
-            if (!db) return alert("Bağlantı hatası! Sayfayı yenileyin.");
+            if (!db) return alert("Veritabanına bağlanılamadı! Güvenlik duvarını kontrol et.");
             if (!name) return alert("İsim girin.");
             const btn = document.getElementById('save-score-btn');
             btn.innerText = "..."; btn.disabled = true;
@@ -261,7 +261,10 @@
                 localStorage.setItem('neon_last_name', name);
                 document.getElementById('leaderboard-screen').classList.remove('hidden');
                 await fetchLeaderboard();
-            } catch (e) { alert("Hata oluştu."); } finally { btn.innerText = "KAYDET"; btn.disabled = false; }
+            } catch (e) { 
+                console.error(e);
+                alert("HATA: " + e.message + "\n\nFirebase Console > Firestore Rules kısmını kontrol et!"); 
+            } finally { btn.innerText = "KAYDET"; btn.disabled = false; }
         }
 
         async function fetchLeaderboard() {
@@ -275,7 +278,10 @@
                 let i=1; snap.forEach(d => { html += `<li class="leaderboard-item"><span>#${i++} ${d.data().name}</span><span>${d.data().score}</span></li>`; });
                 html += '</ul>';
                 div.innerHTML = snap.empty ? "İlk sen ol!" : html;
-            } catch (e) { div.innerText = "Veri alınamadı."; }
+            } catch (e) { 
+                console.error(e);
+                div.innerHTML = `<div style="color:red; font-size:0.8rem;">VERİ ALINAMADI!<br>${e.code}</div>`; 
+            }
         }
 
         document.getElementById('save-score-btn').addEventListener('click', ()=>{ saveScoreToDB(document.getElementById('player-name').value, window.gameScore); });
@@ -336,7 +342,6 @@
             
             playBeat: function(time) {
                 this.beatCount++;
-                // Kick
                 if (this.beatCount % 4 === 0) {
                     const o = this.ctx.createOscillator(); const g = this.ctx.createGain();
                     o.connect(g); g.connect(this.ctx.destination);
@@ -380,7 +385,6 @@
                 const t = this.ctx.currentTime;
                 const o = this.ctx.createOscillator(); const g = this.ctx.createGain();
                 o.connect(g); g.connect(this.ctx.destination);
-                
                 if(type==='dock') { o.type='triangle'; o.frequency.setValueAtTime(300, t); o.frequency.exponentialRampToValueAtTime(50, t+0.15); g.gain.setValueAtTime(0.1, t); g.gain.linearRampToValueAtTime(0, t+0.15); o.start(t); o.stop(t+0.15); }
                 else if(type==='jump') { o.type='sawtooth'; o.frequency.setValueAtTime(100, t); o.frequency.linearRampToValueAtTime(400, t+0.3); g.gain.setValueAtTime(0.1, t); g.gain.exponentialRampToValueAtTime(0.01, t+0.3); o.start(t); o.stop(t+0.3); }
                 else if(type==='combo') { o.type='sine'; o.frequency.setValueAtTime(600, t); o.frequency.exponentialRampToValueAtTime(1200, t+0.2); g.gain.setValueAtTime(0.2, t); g.gain.linearRampToValueAtTime(0, t+0.2); o.start(t); o.stop(t+0.2); }
