@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Neon Force: Global Rank</title>
+    <title>Neon Leap: Global Rank</title>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&display=swap');
         
@@ -37,7 +37,7 @@
             border: 1px solid rgba(0, 255, 157, 0.3);
         }
 
-        /* ORTAK MENÜ STİLİ */
+        /* MENÜLER */
         .menu-screen {
             pointer-events: auto; position: absolute; top: 50%; left: 50%;
             transform: translate(-50%, -50%);
@@ -59,7 +59,7 @@
         
         .hidden { display: none !important; }
 
-        /* INPUT ALANI */
+        /* INPUT */
         input[type="text"] {
             background: rgba(0,0,0,0.5); border: 2px solid #333; color: white;
             padding: 15px; font-family: 'Orbitron'; font-size: 1.2rem; text-align: center;
@@ -67,20 +67,26 @@
         }
         input[type="text"]:focus { border-color: #00ff9d; }
 
-        /* LEADERBOARD TABLOSU */
-        .leaderboard-list {
-            list-style: none; padding: 0; margin: 0; width: 100%; text-align: left;
-        }
+        /* LİSTE */
+        .leaderboard-list { list-style: none; padding: 0; margin: 0; width: 100%; text-align: left; }
         .leaderboard-item {
             display: flex; justify-content: space-between; padding: 10px;
             border-bottom: 1px solid #333; font-size: 0.9rem;
         }
-        .leaderboard-item:nth-child(1) { color: #ffd700; font-weight: bold; font-size: 1.1rem; text-shadow: 0 0 10px #ffd700; } /* Altın */
-        .leaderboard-item:nth-child(2) { color: #c0c0c0; } /* Gümüş */
-        .leaderboard-item:nth-child(3) { color: #cd7f32; } /* Bronz */
+        .leaderboard-item:nth-child(1) { color: #ffd700; font-weight: bold; font-size: 1.1rem; text-shadow: 0 0 10px #ffd700; }
+        .leaderboard-item:nth-child(2) { color: #c0c0c0; }
+        .leaderboard-item:nth-child(3) { color: #cd7f32; }
         
         .loading { color: #00f2ff; animation: blink 1s infinite; }
         @keyframes blink { 50% { opacity: 0.5; } }
+
+        /* MÜZİK BUTONU */
+        #music-btn {
+            position: absolute; bottom: 20px; right: 20px; pointer-events: auto;
+            background: transparent; border: none; font-size: 2rem; opacity: 0.7; cursor: pointer;
+            transition: opacity 0.2s; z-index: 30;
+        }
+        #music-btn:hover { opacity: 1; transform: scale(1.1); }
 
         #toast {
             position: absolute; bottom: 50px; left: 50%; transform: translateX(-50%);
@@ -104,21 +110,19 @@
             </div>
         </div>
 
-        <!-- BAŞLANGIÇ -->
         <div id="start-screen" class="menu-screen">
-            <h1>NEON FORCE</h1>
-            <p style="color:#ccc;">Global Sıralamaya Hazır Mısın?</p>
+            <h1>NEON LEAP</h1>
+            <p style="color:#ccc;">Müziği Hisset, Zirveye Çık</p>
             <button class="btn" id="start-btn">BAŞLAT</button>
         </div>
 
-        <!-- OYUN SONU & SKOR KAYDETME -->
         <div id="game-over-screen" class="menu-screen hidden">
             <h2 style="color:#ff0055; margin:0;">GÖREV SONU</h2>
             <div style="font-size:3rem; font-weight:bold;" id="final-score">0</div>
             
             <div id="save-score-area">
-                <p style="font-size:0.8rem; color:#aaa;">GLOBAL LİSTEYE GİRMEK İÇİN ADINI YAZ:</p>
-                <input type="text" id="player-name" placeholder="PİLOT ADI" maxlength="10">
+                <p style="font-size:0.8rem; color:#aaa;">LİDER TABLOSUNA GİRMEK İÇİN ADINI YAZ:</p>
+                <input type="text" id="player-name" placeholder="PİLOT ADI" maxlength="15">
                 <br><br>
                 <button class="btn" id="save-score-btn" style="border-color:#00ff9d; color:#00ff9d;">KAYDET</button>
             </div>
@@ -128,59 +132,54 @@
             </div>
         </div>
 
-        <!-- LİDER TABLOSU MODAL -->
         <div id="leaderboard-screen" class="menu-screen hidden" style="z-index: 100;">
             <h2 style="color:#ffd700; margin-bottom: 10px;">🏆 TOP 10 PİLOT</h2>
             <div id="leaderboard-content" class="loading">Yükleniyor...</div>
             <br>
             <button class="btn btn-secondary" id="close-leaderboard-btn">KAPAT</button>
         </div>
+
+        <!-- MÜZİK BUTONU -->
+        <button id="music-btn">🔊</button>
     </div>
 
     <div id="toast">Skor Kaydedildi!</div>
     <canvas id="gameCanvas"></canvas>
 
-    <!-- FIREBASE SDK (MODÜL OLARAK) -->
+    <!-- FIREBASE ENTEGRASYONU -->
     <script type="module">
-        // --- 1. FIREBASE AYARLARI (BURAYI KENDİ PROJE AYARLARINLA DEĞİŞTİR) ---
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
         import { getFirestore, collection, addDoc, query, orderBy, limit, getDocs } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
         import { getAnalytics } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-analytics.js";
 
-        // *** DİKKAT: AŞAĞIDAKİ KISMI KENDİ PROJE BİLGİLERİNLE DOLDURMALISIN ***
+        // API KEYLER
         const firebaseConfig = {
-  apiKey: "AIzaSyCc4ERyMGvfAXF-dh_PRztFH707_9pKca0",
-  authDomain: "neonleap-2bb89.firebaseapp.com",
-  projectId: "neonleap-2bb89",
-  storageBucket: "neonleap-2bb89.firebasestorage.app",
-  messagingSenderId: "653143256534",
-  appId: "1:653143256534:web:a92cc76688072e427bc877",
-  measurementId: "G-9YQEJ7LN0E"
-};
+          apiKey: "AIzaSyCc4ERyMGvfAXF-dh_PRztFH707_9pKca0",
+          authDomain: "neonleap-2bb89.firebaseapp.com",
+          projectId: "neonleap-2bb89",
+          storageBucket: "neonleap-2bb89.firebasestorage.app",
+          messagingSenderId: "653143256534",
+          appId: "1:653143256534:web:a92cc76688072e427bc877",
+          measurementId: "G-9YQEJ7LN0E"
+        };
 
-        // Firebase Başlatma (Hata verirse config boş olduğu içindir)
         let db;
         try {
             const app = initializeApp(firebaseConfig);
-            const analytics = getAnalytics(app); // Analytics otomatik çalışır
+            const analytics = getAnalytics(app);
             db = getFirestore(app);
-            console.log("Firebase bağlandı.");
+            console.log("Firebase: Online");
         } catch (e) {
-            console.error("Firebase Ayarları Yapılmadı! Lütfen Config ekleyin.");
+            console.error("Firebase Hatası:", e);
         }
 
-        // --- FIRESTORE FONKSİYONLARI ---
-        
-        // Skoru Kaydet ve Lider Tablosunu Aç
+        // SKOR KAYDETME
         async function saveScoreToDB(name, score) {
-            if (!db) {
-                alert("Veritabanı bağlı değil! Firebase Config ayarlarını yaptın mı?");
-                return;
-            }
-            if (!name) return alert("Lütfen isim girin.");
+            if (!db) return alert("Bağlantı hatası! Sayfayı yenileyin.");
+            if (!name) return alert("Lütfen bir isim girin.");
             
             const btn = document.getElementById('save-score-btn');
-            btn.innerText = "KAYDEDİLİYOR...";
+            btn.innerText = "...";
             btn.disabled = true;
 
             try {
@@ -190,33 +189,29 @@
                     date: new Date()
                 });
                 
-                showToast("Kaydedildi! Liste yükleniyor...");
-                
-                // Kaydetme alanını gizle
+                showToast("Kaydedildi!");
                 document.getElementById('save-score-area').style.display = 'none'; 
-                localStorage.setItem('neon_last_name', name); // İsmi hatırla
+                localStorage.setItem('neon_last_name', name);
 
-                // *** YENİ KISIM: OTOMATİK OLARAK TABLOYU AÇ ***
                 document.getElementById('leaderboard-screen').classList.remove('hidden');
-                await fetchLeaderboard(); // Verileri hemen çek
+                await fetchLeaderboard();
 
             } catch (e) {
-                console.error("Hata:", e);
-                alert("Skor kaydedilemedi: " + e.message);
+                console.error("Kayıt Hatası:", e);
+                alert("Bir sorun oluştu. Lütfen tekrar dene.");
             } finally {
                 btn.innerText = "KAYDET";
                 btn.disabled = false;
             }
         }
 
-        // Lider Tablosunu Çek
+        // LİDER TABLOSUNU ÇEKME
         async function fetchLeaderboard() {
             if (!db) return;
             const contentDiv = document.getElementById('leaderboard-content');
             contentDiv.innerHTML = '<div class="loading">Veriler çekiliyor...</div>';
 
             try {
-                // Skorları puana göre tersten sırala (en yüksek en üstte), ilk 10'u al
                 const q = query(collection(db, "scores"), orderBy("score", "desc"), limit(10));
                 const querySnapshot = await getDocs(q);
                 
@@ -234,19 +229,18 @@
                 });
                 html += '</ul>';
                 
-                if (querySnapshot.empty) html = "<p>Henüz skor yok. İlk sen ol!</p>";
-                
+                if (querySnapshot.empty) html = "<p>İlk skor senin olsun!</p>";
                 contentDiv.innerHTML = html;
             } catch (e) {
                 console.error(e);
-                contentDiv.innerText = "Bağlantı hatası. Config kontrol et.";
+                contentDiv.innerText = "Veri alınamadı.";
             }
         }
 
-        // --- UI EVENTLERİNİ BAĞLA ---
+        // EVENT LISTENERS
         document.getElementById('save-score-btn').addEventListener('click', () => {
             const name = document.getElementById('player-name').value;
-            saveScoreToDB(name, window.gameScore); // window.gameScore oyun motorundan gelecek
+            saveScoreToDB(name, window.gameScore);
         });
 
         document.getElementById('show-leaderboard-btn').addEventListener('click', () => {
@@ -258,20 +252,97 @@
             document.getElementById('leaderboard-screen').classList.add('hidden');
         });
 
-        // Otomatik isim doldurma
         const savedName = localStorage.getItem('neon_last_name');
         if(savedName) document.getElementById('player-name').value = savedName;
 
     </script>
 
-    <!-- OYUN MOTORU (Değişiklik yok, stabil sürüm) -->
+    <!-- OYUN MOTORU VE GELİŞMİŞ SES SİSTEMİ -->
     <script>
+        // SES SİSTEMİ (Full Versiyon)
         const AudioSys = {
-            ctx: null, bgmInterval: null, isMusicOn: true,
-            init: function() { try { const AC = window.AudioContext || window.webkitAudioContext; if(AC && !this.ctx) { this.ctx = new AC(); } if(this.ctx && this.ctx.state === 'suspended') this.ctx.resume(); } catch(e){} },
-            startMusic: function() { if (this.bgmInterval) clearInterval(this.bgmInterval); this.bgmInterval = setInterval(() => { if(gameState !== 'PLAYING' || !this.ctx) return; const t = this.ctx.currentTime; const osc = this.ctx.createOscillator(); const g = this.ctx.createGain(); osc.connect(g); g.connect(this.ctx.destination); osc.frequency.setValueAtTime(100, t); osc.frequency.exponentialRampToValueAtTime(0.01, t+0.3); g.gain.setValueAtTime(0.2, t); g.gain.exponentialRampToValueAtTime(0.01, t+0.3); osc.start(t); osc.stop(t+0.3); }, 500); },
+            ctx: null,
+            bgmInterval: null,
+            isMusicOn: true,
+            beatCount: 0,
+            
+            init: function() {
+                try { 
+                    const AC = window.AudioContext || window.webkitAudioContext;
+                    if(AC && !this.ctx) { 
+                        this.ctx = new AC(); 
+                    }
+                    if(this.ctx && this.ctx.state === 'suspended') this.ctx.resume();
+                } catch(e){}
+            },
+
+            startMusic: function() {
+                if (this.bgmInterval) clearInterval(this.bgmInterval);
+                if (!this.isMusicOn || !this.ctx) return;
+
+                // 120 BPM Procedural Ritim
+                this.bgmInterval = setInterval(() => {
+                    if(gameState !== 'PLAYING') return;
+                    const t = this.ctx.currentTime;
+                    this.beatCount++;
+
+                    // Kick
+                    const osc = this.ctx.createOscillator();
+                    const g = this.ctx.createGain();
+                    osc.connect(g); g.connect(this.ctx.destination);
+                    osc.frequency.setValueAtTime(150, t);
+                    osc.frequency.exponentialRampToValueAtTime(0.01, t + 0.5);
+                    g.gain.setValueAtTime(0.3, t);
+                    g.gain.exponentialRampToValueAtTime(0.01, t + 0.5);
+                    osc.start(t); osc.stop(t + 0.5);
+
+                    // Hi-hat
+                    if (this.beatCount % 2 === 0) {
+                        const osc2 = this.ctx.createOscillator();
+                        const g2 = this.ctx.createGain();
+                        osc2.connect(g2); g2.connect(this.ctx.destination);
+                        osc2.type = 'square'; 
+                        osc2.frequency.setValueAtTime(800, t); 
+                        g2.gain.setValueAtTime(0.05, t);
+                        g2.gain.exponentialRampToValueAtTime(0.01, t + 0.05);
+                        osc2.start(t); osc2.stop(t + 0.05);
+                    }
+                }, 500);
+            },
+
             stopMusic: function() { if (this.bgmInterval) clearInterval(this.bgmInterval); },
-            play: function(type) { if(!this.ctx) return; const t = this.ctx.currentTime; const o = this.ctx.createOscillator(); const g = this.ctx.createGain(); o.connect(g); g.connect(this.ctx.destination); if(type==='dock') { o.type='square'; o.frequency.setValueAtTime(200, t); o.frequency.exponentialRampToValueAtTime(50, t+0.1); g.gain.setValueAtTime(0.1, t); g.gain.linearRampToValueAtTime(0, t+0.1); o.start(t); o.stop(t+0.1); } else if(type==='jump') { o.type='sawtooth'; o.frequency.setValueAtTime(150, t); o.frequency.linearRampToValueAtTime(400, t+0.2); g.gain.setValueAtTime(0.1, t); g.gain.exponentialRampToValueAtTime(0.01, t+0.2); o.start(t); o.stop(t+0.2); } else if(type==='die') { o.type='sawtooth'; o.frequency.setValueAtTime(100, t); o.frequency.exponentialRampToValueAtTime(10, t+0.5); g.gain.setValueAtTime(0.5, t); g.gain.exponentialRampToValueAtTime(0.01, t+0.5); o.start(t); o.stop(t+0.5); } }
+
+            toggleMusic: function() {
+                this.isMusicOn = !this.isMusicOn;
+                const btn = document.getElementById('music-btn');
+                btn.innerHTML = this.isMusicOn ? "🔊" : "🔇";
+                btn.style.opacity = this.isMusicOn ? "1" : "0.5";
+                
+                if(this.isMusicOn && gameState === 'PLAYING') this.startMusic();
+                else this.stopMusic();
+            },
+
+            play: function(type) {
+                if(!this.ctx) return;
+                const t = this.ctx.currentTime;
+                const o = this.ctx.createOscillator(); const g = this.ctx.createGain();
+                o.connect(g); g.connect(this.ctx.destination);
+
+                if(type==='dock') {
+                     // Kenetlenme Sesi
+                     o.type='square'; o.frequency.setValueAtTime(200, t); o.frequency.exponentialRampToValueAtTime(50, t+0.1);
+                     g.gain.setValueAtTime(0.1, t); g.gain.linearRampToValueAtTime(0, t+0.1);
+                     o.start(t); o.stop(t+0.1);
+                } else if(type==='jump') {
+                    o.type='sawtooth'; o.frequency.setValueAtTime(150, t); o.frequency.linearRampToValueAtTime(400, t+0.2);
+                    g.gain.setValueAtTime(0.1, t); g.gain.exponentialRampToValueAtTime(0.01, t+0.2);
+                    o.start(t); o.stop(t+0.2);
+                } else if(type==='die') {
+                    o.type='sawtooth'; o.frequency.setValueAtTime(100, t); o.frequency.exponentialRampToValueAtTime(10, t+0.5);
+                    g.gain.setValueAtTime(0.5, t); g.gain.exponentialRampToValueAtTime(0.01, t+0.5);
+                    o.start(t); o.stop(t+0.5);
+                }
+            }
         };
 
         const canvas = document.getElementById('gameCanvas');
@@ -332,7 +403,12 @@
         function init() {
             width=window.innerWidth; height=window.innerHeight; canvas.width=width; canvas.height=height;
             player=new Player(); score=0; shields=0; orbs=[]; window.gameScore=0;
-            let start=new Orb(height-200); start.x=width/2; orbs.push(start); attachPlayer(start);
+            let start=new Orb(height-200); start.x=width/2; orbs.push(start); 
+            
+            // İlk orb'a manuel yerleştirme (ses çalmadan)
+            player.orbiting=true; player.currentOrb=start; player.angle=-Math.PI/2; 
+            player.x = start.x; player.y = start.y - start.rad;
+
             cameraY=player.y-height/1.5; generateOrbs();
             document.getElementById('score').innerText=0; document.getElementById('shield-count').innerText=0;
         }
@@ -345,7 +421,7 @@
             gameState='GAMEOVER'; AudioSys.stopMusic(); AudioSys.play('die');
             document.getElementById('final-score').innerText = score;
             document.getElementById('game-over-screen').classList.remove('hidden');
-            document.getElementById('save-score-area').style.display = 'block'; // Her seferinde göster
+            document.getElementById('save-score-area').style.display = 'block';
         }
 
         function loop() {
@@ -357,6 +433,12 @@
 
         document.getElementById('start-btn').addEventListener('click', ()=>{ AudioSys.init(); AudioSys.startMusic(); init(); gameState='PLAYING'; document.getElementById('start-screen').classList.add('hidden'); loop(); });
         document.getElementById('restart-btn').addEventListener('click', ()=>{ document.getElementById('game-over-screen').classList.add('hidden'); init(); gameState='PLAYING'; AudioSys.startMusic(); loop(); });
+        
+        // Müzik Butonu Kontrolü
+        document.getElementById('music-btn').addEventListener('click', (e) => {
+            e.stopPropagation(); // Canvas'a tıklamayı engelle
+            AudioSys.toggleMusic();
+        });
 
         window.addEventListener('mousedown', e=>{ if(e.target.tagName!=='BUTTON' && e.target.tagName!=='INPUT') if(gameState==='PLAYING') player.jump(); });
         window.addEventListener('touchstart', e=>{ if(e.target.tagName!=='BUTTON' && e.target.tagName!=='INPUT') {e.preventDefault(); if(gameState==='PLAYING') player.jump();} }, {passive:false});
@@ -366,5 +448,3 @@
     </script>
 </body>
 </html>
-
-
