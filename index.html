@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Neon Force: Viral Edition</title>
+    <title>Neon Force: Rhythm</title>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&display=swap');
         
@@ -15,14 +15,12 @@
         }
         canvas { display: block; width: 100%; height: 100%; }
 
-        /* UI KATMANI */
         #ui-layer {
             position: absolute; top: 0; left: 0; width: 100%; height: 100%;
             pointer-events: none; z-index: 20;
             display: flex; flex-direction: column; align-items: center;
         }
 
-        /* ÜST BİLGİ EKRANI */
         .top-hud {
             position: absolute; top: 20px; width: 100%;
             display: flex; justify-content: space-between; padding: 0 20px; box-sizing: border-box;
@@ -39,7 +37,6 @@
             border: 1px solid rgba(0, 255, 157, 0.3);
         }
 
-        /* MENÜLER */
         .menu-screen {
             pointer-events: auto; position: absolute; top: 50%; left: 50%;
             transform: translate(-50%, -50%);
@@ -56,27 +53,17 @@
             cursor: pointer; border-radius: 50px; transition: 0.2s; flex: 1;
         }
         .btn:active { transform: scale(0.95); background: #00f2ff; color: black; }
+        .btn-share { background: rgba(0, 255, 157, 0.1); border-color: #00ff9d; color: #00ff9d; }
         
-        /* SHARE BUTONU ÖZEL */
-        .btn-share {
-            background: rgba(0, 255, 157, 0.1); border-color: #00ff9d; color: #00ff9d;
-        }
-        .btn-share:active { background: #00ff9d; color: black; }
-
-        /* SONUÇ KUTUSU (Share Preview) */
         .result-box {
             background: rgba(0,0,0,0.5); border-radius: 10px; padding: 15px;
             margin: 10px 0; border: 1px dashed #444;
         }
-        .emoji-strip {
-            font-size: 1.2rem; letter-spacing: 2px; margin: 10px 0;
-            word-break: break-all; line-height: 1.5;
-        }
+        .emoji-strip { font-size: 1.2rem; letter-spacing: 2px; margin: 10px 0; word-break: break-all; }
         .button-group { display: flex; gap: 10px; justify-content: center; }
 
         .hidden { display: none !important; }
 
-        /* TOAST BİLDİRİM */
         #toast {
             position: absolute; bottom: 50px; left: 50%; transform: translateX(-50%);
             background: #00ff9d; color: black; padding: 10px 20px;
@@ -85,31 +72,28 @@
         }
         .show-toast { opacity: 1 !important; bottom: 60px !important; }
         
-        /* EFEKT YAZILARI */
         .floating-text {
             position: absolute; font-weight: 900; pointer-events: none;
             animation: floatUp 1s forwards; text-shadow: 0 0 10px black; white-space: nowrap;
         }
-        @keyframes floatUp {
-            0% { transform: translateY(0) scale(1); opacity: 1; }
-            100% { transform: translateY(-80px) scale(1.5); opacity: 0; }
-        }
+        @keyframes floatUp { 0% { transform: translateY(0) scale(1); opacity: 1; } 100% { transform: translateY(-80px) scale(1.5); opacity: 0; } }
         
-        #tutorial {
-            position: absolute; bottom: 20%; width: 100%; text-align: center;
-            color: rgba(255,255,255,0.5); animation: pulse 2s infinite;
-        }
+        #tutorial { position: absolute; bottom: 20%; width: 100%; text-align: center; color: rgba(255,255,255,0.5); animation: pulse 2s infinite; }
         @keyframes pulse { 50% { opacity: 0.3; } }
+
+        /* Müzik Kontrolü */
+        #music-btn {
+            position: absolute; bottom: 20px; right: 20px; pointer-events: auto;
+            background: transparent; border: none; font-size: 1.5rem; opacity: 0.5; cursor: pointer;
+        }
     </style>
 </head>
 <body>
 
-    <!-- UI -->
     <div id="ui-layer">
         <div class="top-hud">
             <div class="shield-container">
-                <span>🛡️</span>
-                <span id="shield-count">0</span>
+                <span>🛡️</span> <span id="shield-count">0</span>
             </div>
             <div style="text-align: right;">
                 <div id="score" class="score-box">0</div>
@@ -117,60 +101,118 @@
             </div>
         </div>
 
-        <!-- BAŞLANGIÇ EKRANI -->
         <div id="start-screen" class="menu-screen">
             <h1>NEON FORCE</h1>
-            <p style="color:#ccc; font-size:0.9rem; line-height: 1.6;">
-                <strong style="color:#ffaa00">🔥 KOMBO:</strong> Daireye girer girmez zıpla.<br>
-                <strong style="color:#00ff9d">🛡️ JOKER:</strong> 3 Kombo = 1 Kalkan.<br>
+            <p style="color:#ccc; font-size:0.9rem;">
+                Hız azaltıldı. Ritim eklendi.<br>
+                <span style="color:#00ff9d">Müziği hisset, halkaları yakala.</span>
             </p>
-            <button class="btn" id="start-btn">KALKIŞ YAP</button>
+            <button class="btn" id="start-btn">BAŞLAT</button>
         </div>
 
-        <!-- OYUN SONU EKRANI (Gelişmiş) -->
         <div id="game-over-screen" class="menu-screen hidden">
-            <h2 style="color:#ff0055; margin:0; text-shadow:0 0 10px #ff0055;">GÖREV SONU</h2>
-            
+            <h2 style="color:#ff0055; margin:0;">GÖREV SONU</h2>
             <div class="result-box">
                 <div style="color:#aaa; font-size:0.8rem;">GÖREV RAPORU</div>
-                <div id="share-preview" class="emoji-strip">Wait...</div>
+                <div id="share-preview" class="emoji-strip">...</div>
                 <div style="font-size:2rem; font-weight:bold;" id="final-score">0</div>
                 <div style="color:#666; font-size:0.8rem;">EN İYİ: <span id="best-score">0</span></div>
             </div>
-
             <div class="button-group">
                 <button class="btn btn-share" id="share-btn">📤 PAYLAŞ</button>
                 <button class="btn" id="restart-btn">🔄 TEKRAR</button>
             </div>
         </div>
+        
+        <button id="music-btn">🎵</button>
     </div>
 
     <div id="toast">Kopyalandı!</div>
-    <div id="tutorial" class="hidden">HIZLI OYNA, JOKER KAZAN</div>
-    <div id="floating-text-container"></div>
+    <div id="tutorial" class="hidden">DAİREYE GİRİNCE DOKUN</div>
     <textarea id="clipboard-helper" style="position:absolute; left:-9999px;"></textarea>
-    
     <canvas id="gameCanvas"></canvas>
 
     <script>
         /**
-         * NEON FORCE: VIRAL EDITION
-         * Özellikler: Hikaye kaydı (Emoji Log), Wordle-tarzı paylaşım.
+         * NEON FORCE: RHYTHM UPDATE
+         * - Yavaşlatılmış başlangıç hızı.
+         * - Procedural Arka Plan Müziği (BGM).
+         * - "Docking" (Kenetlenme) ses efekti.
          */
 
-        // --- OYUN GEÇMİŞİ (Share Logic İçin) ---
-        let gameHistory = []; // Her hamleyi buraya kaydedeceğiz
-        const HISTORY_LIMIT = 15; // Paylaşımda görünecek son hamle sayısı
+        let gameHistory = [];
+        const HISTORY_LIMIT = 12;
 
-        // --- SES SİSTEMİ ---
+        // --- GELİŞMİŞ SES SİSTEMİ ---
         const AudioSys = {
             ctx: null,
+            bgmInterval: null,
+            isMusicOn: true,
+            beatCount: 0,
+            
             init: function() {
                 try { 
                     const AC = window.AudioContext || window.webkitAudioContext;
-                    if(AC) { this.ctx = new AC(); if(this.ctx.state==='suspended') this.ctx.resume(); }
+                    if(AC && !this.ctx) { 
+                        this.ctx = new AC(); 
+                    }
+                    if(this.ctx && this.ctx.state === 'suspended') this.ctx.resume();
                 } catch(e){}
             },
+
+            // Arkaplan Müziği (Procedural Beat)
+            startMusic: function() {
+                if (this.bgmInterval) clearInterval(this.bgmInterval);
+                if (!this.isMusicOn || !this.ctx) return;
+
+                // 120 BPM basit bir ritim
+                this.bgmInterval = setInterval(() => {
+                    if(gameState !== 'PLAYING') return;
+                    
+                    const t = this.ctx.currentTime;
+                    this.beatCount++;
+
+                    // Kick Drum (Her vuruşta)
+                    const osc = this.ctx.createOscillator();
+                    const g = this.ctx.createGain();
+                    osc.connect(g); g.connect(this.ctx.destination);
+                    
+                    osc.frequency.setValueAtTime(150, t);
+                    osc.frequency.exponentialRampToValueAtTime(0.01, t + 0.5);
+                    g.gain.setValueAtTime(0.3, t); // Volume
+                    g.gain.exponentialRampToValueAtTime(0.01, t + 0.5);
+                    
+                    osc.start(t); osc.stop(t + 0.5);
+
+                    // Hi-hat (Her 2. vuruşta)
+                    if (this.beatCount % 2 === 0) {
+                        const osc2 = this.ctx.createOscillator();
+                        const g2 = this.ctx.createGain();
+                        osc2.connect(g2); g2.connect(this.ctx.destination);
+                        osc2.type = 'square'; // Metalik ses
+                        // Yüksek frekans
+                        osc2.frequency.setValueAtTime(800, t); 
+                        // Çok kısa ses
+                        g2.gain.setValueAtTime(0.05, t);
+                        g2.gain.exponentialRampToValueAtTime(0.01, t + 0.05);
+                        osc2.start(t); osc2.stop(t + 0.05);
+                    }
+
+                }, 500); // 500ms = 120 BPM
+            },
+
+            stopMusic: function() {
+                if (this.bgmInterval) clearInterval(this.bgmInterval);
+            },
+
+            toggleMusic: function() {
+                this.isMusicOn = !this.isMusicOn;
+                const btn = document.getElementById('music-btn');
+                btn.style.opacity = this.isMusicOn ? "1" : "0.3";
+                if(this.isMusicOn && gameState === 'PLAYING') this.startMusic();
+                else this.stopMusic();
+            },
+
             play: function(type) {
                 if(!this.ctx) return;
                 const t = this.ctx.currentTime;
@@ -178,8 +220,27 @@
                 const g = this.ctx.createGain();
                 o.connect(g); g.connect(this.ctx.destination);
 
-                if(type==='jump') {
-                    o.frequency.setValueAtTime(200, t); o.frequency.linearRampToValueAtTime(600, t+0.1);
+                if(type==='dock') { // YENİ: Kenetlenme Sesi
+                    // Mekanik bir "Klik" sesi
+                    o.type = 'square';
+                    o.frequency.setValueAtTime(200, t);
+                    o.frequency.exponentialRampToValueAtTime(100, t + 0.1);
+                    g.gain.setValueAtTime(0.15, t);
+                    g.gain.linearRampToValueAtTime(0, t + 0.1);
+                    o.start(t); o.stop(t + 0.1);
+                    
+                    // Altına bir bass thud ekle
+                    const o2 = this.ctx.createOscillator();
+                    const g2 = this.ctx.createGain();
+                    o2.connect(g2); g2.connect(this.ctx.destination);
+                    o2.frequency.setValueAtTime(80, t);
+                    o2.frequency.exponentialRampToValueAtTime(0.01, t+0.2);
+                    g2.gain.setValueAtTime(0.3, t);
+                    g2.gain.exponentialRampToValueAtTime(0.01, t+0.2);
+                    o2.start(t); o2.stop(t+0.2);
+
+                } else if(type==='jump') {
+                    o.frequency.setValueAtTime(150, t); o.frequency.linearRampToValueAtTime(500, t+0.15);
                     g.gain.setValueAtTime(0.2, t); g.gain.exponentialRampToValueAtTime(0.01, t+0.2);
                     o.type='sawtooth'; o.start(t); o.stop(t+0.2);
                 } else if(type==='combo') {
@@ -213,11 +274,9 @@
         let cameraY = 0;
         let player, orbs=[], particles=[];
 
-        // --- YARDIMCILARI ---
         function spawnFloatingText(x, y, text, color) {
             const el = document.createElement('div');
-            el.className = 'floating-text';
-            el.innerText = text;
+            el.className = 'floating-text'; el.innerText = text;
             el.style.left = x + 'px'; el.style.top = y + 'px'; el.style.color = color;
             document.body.appendChild(el);
             setTimeout(() => el.remove(), 1000);
@@ -225,15 +284,9 @@
 
         function logHistory(emoji) {
             gameHistory.push(emoji);
-            // Çok uzarsa başını kes (son 15 hamleyi tutmak viral için daha iyi)
-            if(gameHistory.length > HISTORY_LIMIT) {
-                // Ama ilk elemanı tutmak isteyebiliriz, neyse düz kaydıralım
-                // gameHistory.shift(); 
-                // Wordle gibi tüm hikayeyi tutalım ama ekrana basarken keselim
-            }
+            if(gameHistory.length > HISTORY_LIMIT) gameHistory.shift(); // Kaydır
         }
 
-        // --- OYUNCU SINIFI ---
         class Player {
             constructor() { this.reset(); }
             reset() {
@@ -266,7 +319,13 @@
                 }
 
                 if (this.orbiting && this.currentOrb) {
-                    let speed = 0.06 + (score*0.001);
+                    // HIZ DÜZENLEMESİ: Başlangıçta daha yavaş
+                    // Eski: 0.06 + (score*0.001) -> Yeni: 0.035 + ...
+                    let baseSpeed = 0.035; 
+                    let speed = baseSpeed + (score * 0.0008); 
+                    // Max hız limiti
+                    if(speed > 0.1) speed = 0.1;
+
                     this.angle += speed * this.currentOrb.direction;
                     this.x = this.currentOrb.x + Math.cos(this.angle)*this.currentOrb.radius;
                     this.y = this.currentOrb.y + Math.sin(this.angle)*this.currentOrb.radius;
@@ -309,11 +368,9 @@
                 if (this.orbiting && this.currentOrb) {
                     let timeSpent = Date.now() - this.attachTime;
                     
-                    if (timeSpent < 1000 && timeSpent > 100) { 
+                    if (timeSpent < 1200 && timeSpent > 100) {  // Kombo süresini biraz daha uzattım (daha kolay)
                         comboCount++;
-                        // LOG: Combo Atlayış
                         logHistory('🔥');
-                        
                         if (comboCount < 3) {
                              AudioSys.play('combo');
                              spawnFloatingText(this.x, this.y - 50, `SERİ x${comboCount}`, "#ffaa00");
@@ -324,14 +381,14 @@
                             comboCount = 0;
                         }
                     } else {
-                        // LOG: Normal Atlayış
                         logHistory('🔵');
                         if (comboCount > 0) spawnFloatingText(this.x, this.y - 50, "SERİ BOZULDU", "#ff5555");
                         comboCount = 0;
                     }
 
                     this.orbiting = false;
-                    let power = 14 + (score * 0.05); if(power>22) power=22;
+                    // ZIPLAMA GÜCÜ: Biraz azalttım, daha kontrollü olsun
+                    let power = 13 + (score * 0.04); if(power>20) power=20;
                     this.vx = Math.cos(this.rotation) * power;
                     this.vy = Math.sin(this.rotation) * power;
                     AudioSys.play('jump');
@@ -364,21 +421,27 @@
             }
         }
 
-        // --- OYUN MOTORU ---
         function init() {
             width = window.innerWidth; height = window.innerHeight;
             canvas.width = width; canvas.height = height;
             
             player = new Player();
             score = 0; shields = 0; comboCount = 0;
-            gameHistory = []; // Geçmişi sıfırla
+            gameHistory = []; 
             orbs = []; particles = [];
             
             let startOrb = new Orb(height-200);
             startOrb.x = width/2; startOrb.radius = 80; startOrb.moving = false;
             orbs.push(startOrb);
-            attachPlayer(startOrb);
             
+            // İlk bağlantı ses çalmasın diye manuel yapıyoruz
+            player.orbiting = true;
+            player.currentOrb = startOrb;
+            player.angle = -Math.PI/2;
+            player.attachTime = Date.now();
+            player.x = startOrb.x + Math.cos(player.angle)*startOrb.radius;
+            player.y = startOrb.y + Math.sin(player.angle)*startOrb.radius;
+
             cameraY = player.y - height/1.5;
             generateOrbs();
             updateUI();
@@ -390,6 +453,7 @@
             let dx = player.x - orb.x; let dy = player.y - orb.y;
             player.angle = Math.atan2(dy, dx);
             player.attachTime = Date.now();
+            AudioSys.play('dock'); // YENİ SES BURADA ÇALIYOR
         }
 
         function generateOrbs() {
@@ -419,7 +483,6 @@
             if (shields > 0) {
                 shields--; updateUI();
                 AudioSys.play('recover');
-                // LOG: Kurtarılma
                 logHistory('🛡️');
                 gameState = 'RECOVERING';
                 player.vx = 0; player.vy = 0;
@@ -474,7 +537,7 @@
         function gameOver() {
             gameState = 'GAMEOVER';
             AudioSys.play('die');
-            // LOG: Ölüm
+            AudioSys.stopMusic(); // Müzik durur
             logHistory('💀');
             
             if(score > highScore) { highScore = score; localStorage.setItem('nf_high', score); }
@@ -482,43 +545,26 @@
             document.getElementById('final-score').innerText = score;
             document.getElementById('best-score').innerText = highScore;
             
-            // Share Preview Oluştur
-            let historyStr = gameHistory.slice(-12).join(''); // Son 12 hareketi göster
+            let historyStr = gameHistory.slice(-12).join(''); 
             document.getElementById('share-preview').innerText = historyStr;
             
             document.getElementById('game-over-screen').classList.remove('hidden');
         }
 
-        // --- PAYLAŞIM FONKSİYONLARI ---
         function generateShareText() {
             let historyStr = gameHistory.slice(-12).join('');
             let title = score > 20 ? "Neon Force 🚀 (OMEGA)" : "Neon Force 🚀";
-            
             return `${title}\n${historyStr}\nSkor: ${score} | Kalkan: ${shields}`;
         }
 
         async function copyToClipboard() {
             const text = generateShareText();
             const helper = document.getElementById('clipboard-helper');
-            
-            // Modern yöntem
             if (navigator.clipboard && navigator.clipboard.writeText) {
-                try {
-                    await navigator.clipboard.writeText(text);
-                    showToast();
-                    return;
-                } catch (err) {}
+                try { await navigator.clipboard.writeText(text); showToast(); return; } catch (err) {}
             }
-            
-            // Fallback yöntem (Mobil iframe uyumu için)
-            helper.value = text;
-            helper.select();
-            try {
-                document.execCommand('copy');
-                showToast();
-            } catch (err) {
-                console.error("Kopyalama başarısız");
-            }
+            helper.value = text; helper.select();
+            try { document.execCommand('copy'); showToast(); } catch (err) {}
         }
 
         function showToast() {
@@ -527,13 +573,13 @@
             setTimeout(() => toast.classList.remove('show-toast'), 2000);
         }
 
-        // --- GİRİŞ ---
         function input(e) { if(gameState === 'PLAYING') player.jump(); }
         
         function startGame(e) {
             if(e) e.stopPropagation(); AudioSys.init(); init();
             document.getElementById('start-screen').classList.add('hidden');
             document.getElementById('tutorial').classList.remove('hidden');
+            AudioSys.startMusic(); // Müzik başlar
             setTimeout(()=>{ gameState='PLAYING'; setTimeout(()=>document.getElementById('tutorial').classList.add('hidden'), 2000);}, 100);
             loop();
         }
@@ -541,7 +587,10 @@
         function resetGame(e) {
             if(e) e.stopPropagation();
             document.getElementById('game-over-screen').classList.add('hidden');
-            init(); gameState='PLAYING'; loop();
+            init(); 
+            gameState='PLAYING'; 
+            AudioSys.startMusic();
+            loop();
         }
 
         window.addEventListener('mousedown', e => { if(e.target.tagName!=='BUTTON') input(); });
@@ -551,6 +600,7 @@
         document.getElementById('start-btn').addEventListener('click', startGame);
         document.getElementById('restart-btn').addEventListener('click', resetGame);
         document.getElementById('share-btn').addEventListener('click', (e) => { e.stopPropagation(); copyToClipboard(); });
+        document.getElementById('music-btn').addEventListener('click', (e) => { e.stopPropagation(); AudioSys.toggleMusic(); });
         
         width = window.innerWidth; height = window.innerHeight;
         canvas.width = width; canvas.height = height;
@@ -559,5 +609,3 @@
     </script>
 </body>
 </html>
-
-
