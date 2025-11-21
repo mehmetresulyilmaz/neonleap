@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="tr">
+<html lang="en">
 <head>
     <!-- Google tag (gtag.js) -->
     <script async src="https://www.googletagmanager.com/gtag/js?id=G-9YQEJ7LN0E"></script>
@@ -12,7 +12,7 @@
 
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Neon Leap: Final</title>
+    <title>Neon Leap: Global</title>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&display=swap');
         
@@ -154,7 +154,7 @@
                 <div id="shield-ui" class="shield-container">
                     <span>🛡️</span> <span id="shield-count">0</span>
                 </div>
-                <button id="show-leaderboard-btn" class="btn btn-secondary" style="border-radius: 20px;">🏆 TOP 10</button>
+                <button id="show-leaderboard-btn" class="btn btn-secondary" style="border-radius: 20px;" data-i18n="btn_top10">🏆 TOP 10</button>
             </div>
 
             <div class="hud-center">
@@ -172,47 +172,47 @@
         <div id="start-screen" class="menu-screen">
             <h1>NEON LEAP</h1>
             <p style="color:#ccc; line-height: 1.6;">
-                <span style="color:#ffaa00">🔥 SERİ OYNA (Combo)</span><br>
-                <span style="color:#00ff9d">🛡️ 3 COMBO = 1 JOKER</span>
+                <span style="color:#ffaa00" data-i18n="start_subtitle_1">🔥 SERİ OYNA (Combo)</span><br>
+                <span style="color:#00ff9d" data-i18n="start_subtitle_2">🛡️ 3 COMBO = 1 JOKER</span>
             </p>
-            <button class="btn" id="start-btn">BAŞLAT</button>
+            <button class="btn" id="start-btn" data-i18n="btn_start">BAŞLAT</button>
         </div>
 
         <div id="game-over-screen" class="menu-screen hidden">
-            <h2 style="color:#ff0055; margin:0;">GÖREV SONU</h2>
+            <h2 style="color:#ff0055; margin:0;" data-i18n="game_over_title">GÖREV SONU</h2>
             
             <div class="result-box">
-                <div style="font-size:0.8rem; color:#aaa; margin-bottom:5px;">GÖREV RAPORU</div>
+                <div style="font-size:0.8rem; color:#aaa; margin-bottom:5px;" data-i18n="mission_report">GÖREV RAPORU</div>
                 <div id="share-preview" class="emoji-strip">...</div>
                 <div style="display:flex; justify-content:space-around; align-items:center; margin-top:5px;">
                     <div style="font-size:2rem; font-weight:bold;" id="final-score">0</div>
-                    <div style="color:#666; font-size:0.8rem;">EN İYİ: <span id="best-score">0</span></div>
+                    <div style="color:#666; font-size:0.8rem;"><span data-i18n="best_score">EN İYİ:</span> <span id="best-score">0</span></div>
                 </div>
             </div>
 
             <div style="display: flex; gap: 10px; width: 100%;">
-                <button class="btn btn-share" id="share-btn">📤 PAYLAŞ</button>
+                <button class="btn btn-share" id="share-btn" data-i18n="btn_share">📤 PAYLAŞ</button>
             </div>
             
             <hr style="border:0; border-top:1px solid rgba(255,255,255,0.1); margin:15px 0; width:100%;">
 
             <div id="save-score-area">
-                <p style="font-size:0.8rem; color:#aaa;">LİDER TABLOSU İÇİN ADINI YAZ:</p>
+                <p style="font-size:0.8rem; color:#aaa;" data-i18n="enter_name">LİDER TABLOSU İÇİN ADINI YAZ:</p>
                 <input type="text" id="player-name" placeholder="PİLOT ADI" maxlength="15">
                 <br><br>
-                <button class="btn" id="save-score-btn" style="border-color:#00f2ff; color:#00f2ff;">KAYDET</button>
+                <button class="btn" id="save-score-btn" style="border-color:#00f2ff; color:#00f2ff;" data-i18n="btn_save">KAYDET</button>
             </div>
             
             <div style="margin-top:15px;">
-                <button class="btn" id="restart-btn" style="border-color:#666; color:#ccc;">TEKRAR DENE</button>
+                <button class="btn" id="restart-btn" style="border-color:#666; color:#ccc;" data-i18n="btn_retry">TEKRAR DENE</button>
             </div>
         </div>
 
         <div id="leaderboard-screen" class="menu-screen hidden" style="z-index: 100;">
-            <h2 style="color:#ffd700; margin-bottom: 10px;">🏆 TOP 10 PİLOT</h2>
-            <div id="leaderboard-content" class="loading">Yükleniyor...</div>
+            <h2 style="color:#ffd700; margin-bottom: 10px;" data-i18n="leaderboard_title">🏆 TOP 10 PİLOT</h2>
+            <div id="leaderboard-content" class="loading" data-i18n="loading">Yükleniyor...</div>
             <br>
-            <button class="btn btn-secondary" id="close-leaderboard-btn">KAPAT</button>
+            <button class="btn btn-secondary" id="close-leaderboard-btn" data-i18n="btn_close">KAPAT</button>
         </div>
         
         <div class="audio-controls">
@@ -221,9 +221,96 @@
         </div>
     </div>
 
-    <div id="toast">Kopyalandı!</div>
+    <div id="toast"></div>
     <textarea id="clipboard-helper" style="position:absolute; left:-9999px;"></textarea>
     <canvas id="gameCanvas"></canvas>
+
+    <!-- ÇOKLU DİL DESTEĞİ -->
+    <script>
+        const TRANSLATIONS = {
+            tr: {
+                start_subtitle_1: "🔥 SERİ OYNA (Combo)",
+                start_subtitle_2: "🛡️ 3 COMBO = 1 JOKER",
+                btn_start: "BAŞLAT",
+                game_over_title: "GÖREV SONU",
+                mission_report: "GÖREV RAPORU",
+                best_score: "EN İYİ:",
+                btn_share: "📤 PAYLAŞ",
+                enter_name: "LİDER TABLOSU İÇİN ADINI YAZ:",
+                placeholder_name: "PİLOT ADI",
+                btn_save: "KAYDET",
+                btn_retry: "TEKRAR DENE",
+                btn_top10: "🏆 TOP 10",
+                leaderboard_title: "🏆 TOP 10 PİLOT",
+                btn_close: "KAPAT",
+                // JS Dynamic
+                level_up: "SEVİYE ATLADI!",
+                combo_x: "SERİ x",
+                combo_broken: "SERİ BOZULDU",
+                shield_gained: "JOKER KAZANDIN!",
+                slow: "YAVAŞ",
+                recovery_mode: "KURTARMA MODU!",
+                system_active: "SİSTEM AKTİF",
+                copied: "Kopyalandı!",
+                saved: "Kaydedildi!",
+                saving: "KAYDEDİLİYOR...",
+                loading: "Yükleniyor...",
+                fetch_error: "Veri alınamadı.",
+                db_error: "Bağlantı hatası!",
+                enter_name_alert: "Lütfen bir isim girin.",
+                share_title: "Neon Leap 🚀",
+                share_score: "Skor:"
+            },
+            en: {
+                start_subtitle_1: "🔥 FAST PLAY (Combo)",
+                start_subtitle_2: "🛡️ 3 COMBOS = 1 SHIELD",
+                btn_start: "LAUNCH",
+                game_over_title: "MISSION FAILED",
+                mission_report: "MISSION REPORT",
+                best_score: "BEST:",
+                btn_share: "📤 SHARE",
+                enter_name: "ENTER NAME FOR LEADERBOARD:",
+                placeholder_name: "PILOT NAME",
+                btn_save: "SAVE",
+                btn_retry: "RETRY",
+                btn_top10: "🏆 TOP 10",
+                leaderboard_title: "🏆 TOP 10 PILOTS",
+                btn_close: "CLOSE",
+                // JS Dynamic
+                level_up: "LEVEL UP!",
+                combo_x: "COMBO x",
+                combo_broken: "COMBO BROKEN",
+                shield_gained: "SHIELD GAINED!",
+                slow: "TOO SLOW",
+                recovery_mode: "RECOVERY MODE!",
+                system_active: "SYSTEM ACTIVE",
+                copied: "Copied!",
+                saved: "Saved!",
+                saving: "SAVING...",
+                loading: "Loading...",
+                fetch_error: "Fetch error.",
+                db_error: "Connection error!",
+                enter_name_alert: "Please enter a name.",
+                share_title: "Neon Leap 🚀",
+                share_score: "Score:"
+            }
+        };
+
+        // Dil Tespiti
+        const userLang = navigator.language || navigator.userLanguage; 
+        const langCode = userLang.startsWith('tr') ? 'tr' : 'en'; // TR ise TR, değilse EN (varsayılan)
+        const T = TRANSLATIONS[langCode];
+
+        // UI Metinlerini Güncelle
+        document.addEventListener('DOMContentLoaded', () => {
+            document.querySelectorAll('[data-i18n]').forEach(el => {
+                const key = el.getAttribute('data-i18n');
+                if(T[key]) el.innerText = T[key];
+            });
+            // Placeholder özel durum
+            document.getElementById('player-name').placeholder = T.placeholder_name;
+        });
+    </script>
 
     <!-- FIREBASE -->
     <script type="module">
@@ -231,7 +318,6 @@
         import { getFirestore, collection, addDoc, query, orderBy, limit, getDocs } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
         import { getAnalytics } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-analytics.js";
 
-        // SENİN VERDİĞİN API ANAHTARLARI
         const firebaseConfig = {
           apiKey: "AIzaSyCc4ERyMGvfAXF-dh_PRztFH707_9pKca0",
           authDomain: "neonleap-2bb89.firebaseapp.com",
@@ -247,41 +333,35 @@
             const app = initializeApp(firebaseConfig); 
             const analytics = getAnalytics(app); 
             db = getFirestore(app); 
-        } catch(e){ console.error("Firebase Init Hatası:", e); }
+        } catch(e){ console.error(e); }
 
         async function saveScoreToDB(name, score) {
-            if (!db) return alert("Veritabanına bağlanılamadı! Güvenlik duvarını kontrol et.");
-            if (!name) return alert("İsim girin.");
+            if (!db) return alert(T.db_error);
+            if (!name) return alert(T.enter_name_alert);
             const btn = document.getElementById('save-score-btn');
-            btn.innerText = "..."; btn.disabled = true;
+            btn.innerText = T.saving; btn.disabled = true;
             try {
                 await addDoc(collection(db, "scores"), { name: name.toUpperCase(), score: score, date: new Date() });
-                showToast("Kaydedildi!");
+                showToast(T.saved);
                 document.getElementById('save-score-area').style.display = 'none';
                 localStorage.setItem('neon_last_name', name);
                 document.getElementById('leaderboard-screen').classList.remove('hidden');
                 await fetchLeaderboard();
-            } catch (e) { 
-                console.error(e);
-                alert("HATA: " + e.message + "\n\nFirebase Console > Firestore Rules kısmını kontrol et!"); 
-            } finally { btn.innerText = "KAYDET"; btn.disabled = false; }
+            } catch (e) { alert("Error: " + e.message); } finally { btn.innerText = T.btn_save; btn.disabled = false; }
         }
 
         async function fetchLeaderboard() {
             if (!db) return;
             const div = document.getElementById('leaderboard-content');
-            div.innerHTML = '<div class="loading">Veriler çekiliyor...</div>';
+            div.innerHTML = `<div class="loading">${T.loading}</div>`;
             try {
                 const q = query(collection(db, "scores"), orderBy("score", "desc"), limit(10));
                 const snap = await getDocs(q);
                 let html = '<ul class="leaderboard-list">';
                 let i=1; snap.forEach(d => { html += `<li class="leaderboard-item"><span>#${i++} ${d.data().name}</span><span>${d.data().score}</span></li>`; });
                 html += '</ul>';
-                div.innerHTML = snap.empty ? "İlk sen ol!" : html;
-            } catch (e) { 
-                console.error(e);
-                div.innerHTML = `<div style="color:red; font-size:0.8rem;">VERİ ALINAMADI!<br>${e.code}</div>`; 
-            }
+                div.innerHTML = snap.empty ? "No Data" : html;
+            } catch (e) { div.innerText = T.fetch_error; }
         }
 
         document.getElementById('save-score-btn').addEventListener('click', ()=>{ saveScoreToDB(document.getElementById('player-name').value, window.gameScore); });
@@ -322,7 +402,7 @@
             document.getElementById('score').style.color = theme.main;
             document.getElementById('level-txt').innerText = theme.name;
             const msg = document.getElementById('level-up-msg');
-            msg.innerText = theme.name; msg.style.color = theme.main;
+            msg.innerText = T.level_up; msg.style.color = theme.main;
             msg.classList.remove('levelup-anim'); void msg.offsetWidth; msg.classList.add('levelup-anim');
             AudioSys.playSFX('levelup');
         }
@@ -370,8 +450,7 @@
             
             toggleMusic: function() {
                 this.isMusicOn = !this.isMusicOn;
-                const btn = document.getElementById('music-btn');
-                btn.classList.toggle('audio-off', !this.isMusicOn);
+                document.getElementById('music-btn').classList.toggle('audio-off', !this.isMusicOn);
                 if(this.isMusicOn && gameState==='PLAYING') this.startMusic(); else this.stopMusic();
             },
             
@@ -385,6 +464,7 @@
                 const t = this.ctx.currentTime;
                 const o = this.ctx.createOscillator(); const g = this.ctx.createGain();
                 o.connect(g); g.connect(this.ctx.destination);
+                
                 if(type==='dock') { o.type='triangle'; o.frequency.setValueAtTime(300, t); o.frequency.exponentialRampToValueAtTime(50, t+0.15); g.gain.setValueAtTime(0.1, t); g.gain.linearRampToValueAtTime(0, t+0.15); o.start(t); o.stop(t+0.15); }
                 else if(type==='jump') { o.type='sawtooth'; o.frequency.setValueAtTime(100, t); o.frequency.linearRampToValueAtTime(400, t+0.3); g.gain.setValueAtTime(0.1, t); g.gain.exponentialRampToValueAtTime(0.01, t+0.3); o.start(t); o.stop(t+0.3); }
                 else if(type==='combo') { o.type='sine'; o.frequency.setValueAtTime(600, t); o.frequency.exponentialRampToValueAtTime(1200, t+0.2); g.gain.setValueAtTime(0.2, t); g.gain.linearRampToValueAtTime(0, t+0.2); o.start(t); o.stop(t+0.2); }
@@ -423,7 +503,7 @@
                      if(target) {
                          this.x += (target.x - this.x) * 0.15; this.y += (target.y - this.y) * 0.15;
                          if(Math.hypot(target.x - this.x, target.y - this.y) < target.rad + 20) { 
-                             attachPlayer(target); gameState='PLAYING'; spawnFloatingText(width/2, height/2, "SİSTEM AKTİF", "#00ff9d"); 
+                             attachPlayer(target); gameState='PLAYING'; spawnFloatingText(width/2, height/2, T.system_active, "#00ff9d"); 
                          }
                      }
                      return;
@@ -461,18 +541,18 @@
                         logHistory('🔥'); 
                         if(comboCount < 3) {
                             AudioSys.playSFX('combo');
-                            spawnFloatingText(this.x, this.y - 50, `SERİ x${comboCount}`, "#ffaa00");
+                            spawnFloatingText(this.x, this.y - 50, `${T.combo_x}${comboCount}`, "#ffaa00");
                         } else if (comboCount === 3) {
                             shields++; 
                             document.getElementById('shield-count').innerText=shields;
                             const sUI = document.getElementById('shield-ui'); sUI.classList.add('shield-active'); setTimeout(()=>sUI.classList.remove('shield-active'), 500);
-                            spawnFloatingText(this.x, this.y - 80, "JOKER KAZANDIN!", "#00ff9d");
+                            spawnFloatingText(this.x, this.y - 80, T.shield_gained, "#00ff9d");
                             AudioSys.playSFX('shield_get');
                             comboCount = 0;
                         }
                     } else {
                         logHistory('🔵');
-                        if(comboCount > 0) spawnFloatingText(this.x, this.y - 50, "SERİ BOZULDU", "#ff5555");
+                        if(comboCount > 0) spawnFloatingText(this.x, this.y - 50, T.combo_broken, "#ff5555");
                         comboCount = 0;
                     }
                     this.orbiting=false;
@@ -549,7 +629,7 @@
                 shields--; document.getElementById('shield-count').innerText=shields;
                 AudioSys.playSFX('recover'); logHistory('🛡️');
                 gameState='RECOVERING'; player.vx=0; player.vy=0;
-                spawnFloatingText(width/2, height/2, "KURTARMA MODU!", "#00ff9d");
+                spawnFloatingText(width/2, height/2, T.recovery_mode, "#00ff9d");
             } else { gameOver(); }
         }
 
@@ -572,10 +652,10 @@
 
         function copyToClipboard() {
             let historyStr = gameHistory.slice(-10).join('');
-            let text = `Neon Leap 🚀\n${historyStr}\nSkor: ${score}`;
+            let text = `${T.share_title}\n${historyStr}\n${T.share_score} ${score}`;
             const textArea = document.getElementById("clipboard-helper");
             textArea.value = text; textArea.select();
-            try { document.execCommand("copy"); showToast("Kopyalandı!"); } catch (err) {}
+            try { document.execCommand("copy"); showToast(T.copied); } catch (err) {}
         }
 
         function toggleFullScreen() {
