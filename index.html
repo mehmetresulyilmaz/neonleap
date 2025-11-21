@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Neon Leap: Ultimate Space</title>
+    <title>Neon Leap: Final</title>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&display=swap');
         
@@ -16,37 +16,56 @@
         }
         canvas { display: block; width: 100%; height: 100%; }
 
-        /* ARAYÜZ (UI) */
+        /* UI KATMANI */
         #ui-layer {
             position: absolute; top: 0; left: 0; width: 100%; height: 100%;
             pointer-events: none; z-index: 20;
             display: flex; flex-direction: column; align-items: center;
         }
+
+        /* HUD (Üst Bilgi Ekranı) */
         .top-hud {
             position: absolute; top: 20px; width: 100%;
-            display: flex; justify-content: space-between; padding: 0 20px; box-sizing: border-box;
-            text-shadow: 0 0 10px rgba(255, 255, 255, 0.5); pointer-events: auto;
+            display: grid; grid-template-columns: 1fr auto 1fr; /* Sol - Orta - Sağ */
+            align-items: center; padding: 0 20px; box-sizing: border-box;
+            pointer-events: auto;
         }
-        .score-box { font-size: 2.5rem; font-weight: 900; transition: color 0.5s; }
-        .level-indicator { font-size: 0.8rem; color: rgba(255,255,255,0.5); margin-top: -5px; text-align: right; }
         
+        /* Sol Taraf: Kalkan */
+        .hud-left { display: flex; align-items: center; gap: 10px; justify-self: start; }
+        
+        /* Orta: Skor */
+        .hud-center { text-align: center; }
+        .score-box { font-size: 3rem; font-weight: 900; transition: color 0.5s; line-height: 1; }
+        .level-indicator { font-size: 0.7rem; color: rgba(255,255,255,0.5); letter-spacing: 2px; }
+
+        /* Sağ: Butonlar */
+        .hud-right { justify-self: end; display: flex; gap: 15px; }
+
         .shield-container {
-            display: flex; align-items: center; gap: 10px;
-            color: #00ff9d; font-size: 1.2rem; font-weight: bold;
+            display: flex; align-items: center; gap: 8px;
+            color: #00ff9d; font-size: 1.1rem; font-weight: bold;
             background: rgba(0, 255, 157, 0.1);
-            padding: 10px 20px; border-radius: 30px; border: 1px solid rgba(0, 255, 157, 0.3);
+            padding: 8px 16px; border-radius: 30px; border: 1px solid rgba(0, 255, 157, 0.3);
             transition: all 0.3s;
         }
         .shield-active { transform: scale(1.3); background: rgba(0, 255, 157, 0.6); box-shadow: 0 0 30px #00ff9d; color: #000; }
 
-        /* MENÜLER */
+        /* BUTONLAR */
+        .icon-btn {
+            background: transparent; border: none; color: rgba(255,255,255,0.6);
+            font-size: 1.8rem; cursor: pointer; transition: 0.2s; padding: 0;
+        }
+        .icon-btn:hover { color: white; transform: scale(1.2); }
+
+        /* ORTAK MENÜ STİLİ */
         .menu-screen {
             pointer-events: auto; position: absolute; top: 50%; left: 50%;
             transform: translate(-50%, -50%);
             background: rgba(10, 15, 25, 0.95); padding: 2rem;
             border-radius: 20px; border: 1px solid rgba(0, 242, 255, 0.3);
             text-align: center; display: flex; flex-direction: column; gap: 1rem;
-            box-shadow: 0 0 50px rgba(0,0,0,0.9); min-width: 320px; max-width: 90%;
+            box-shadow: 0 0 60px rgba(0,0,0,0.8); min-width: 320px; max-width: 90%;
             backdrop-filter: blur(10px); z-index: 50;
         }
         h1 { margin: 0; font-size: 2.5rem; background: linear-gradient(to right, #00f2ff, #00ff9d); -webkit-background-clip: text; color: transparent; }
@@ -54,11 +73,23 @@
         .btn {
             background: rgba(0, 242, 255, 0.1); border: 2px solid #00f2ff; color: #00f2ff;
             padding: 15px 30px; font-size: 1.1rem; font-family: inherit; font-weight: bold;
-            cursor: pointer; border-radius: 50px; transition: 0.2s;
+            cursor: pointer; border-radius: 50px; transition: 0.2s; width: 100%;
         }
         .btn:hover { background: #00f2ff; color: black; box-shadow: 0 0 20px #00f2ff; }
-        .btn-secondary { border-color: #666; color: #aaa; font-size: 0.9rem; padding: 10px 20px; }
+        .btn-share { border-color: #00ff9d; color: #00ff9d; background: rgba(0, 255, 157, 0.1); }
+        .btn-share:hover { background: #00ff9d; color: black; }
+        .btn-secondary { border-color: #666; color: #aaa; font-size: 0.8rem; padding: 8px 16px; width: auto; }
         .hidden { display: none !important; }
+
+        /* PAYLAŞIM KUTUSU */
+        .result-box {
+            background: rgba(255, 255, 255, 0.05); border-radius: 10px; padding: 15px;
+            margin-bottom: 15px; border: 1px dashed rgba(255,255,255,0.2);
+        }
+        .emoji-strip {
+            font-size: 1.5rem; letter-spacing: 3px; margin: 10px 0; word-break: break-all;
+            line-height: 1.4; text-shadow: 0 0 10px rgba(255,255,255,0.3);
+        }
 
         input[type="text"] {
             background: rgba(0,0,0,0.5); border: 2px solid #333; color: white;
@@ -72,21 +103,17 @@
         .loading { color: #00f2ff; animation: blink 1s infinite; }
         @keyframes blink { 50% { opacity: 0.5; } }
 
-        /* EFEKTLER */
+        /* EFEKT YAZILARI */
         .floating-text {
             position: absolute; font-weight: 900; pointer-events: none;
             animation: floatUp 1.2s forwards; text-shadow: 0 0 10px black; white-space: nowrap; font-size: 1.5rem; z-index: 10;
         }
-        @keyframes floatUp { 
-            0% { transform: translateY(0) scale(1); opacity: 1; } 
-            100% { transform: translateY(-120px) scale(1.5); opacity: 0; } 
-        }
+        @keyframes floatUp { 0% { transform: translateY(0) scale(1); opacity: 1; } 100% { transform: translateY(-120px) scale(1.5); opacity: 0; } }
 
         #level-up-msg {
-            position: absolute; top: 30%; width: 100%; text-align: center;
+            position: absolute; top: 35%; width: 100%; text-align: center;
             font-size: 3rem; font-weight: 900; color: #fff;
-            text-shadow: 0 0 20px currentColor; opacity: 0; pointer-events: none;
-            transition: color 0.5s;
+            text-shadow: 0 0 20px currentColor; opacity: 0; pointer-events: none; transition: color 0.5s;
         }
         .levelup-anim { animation: levelUpPop 2.5s forwards; }
         @keyframes levelUpPop {
@@ -96,12 +123,13 @@
             100% { opacity: 0; transform: scale(1.5) translateY(-50px); }
         }
 
+        /* ALT BUTONLAR (Müzik) */
         #music-btn {
             position: absolute; bottom: 20px; right: 20px; pointer-events: auto;
-            background: transparent; border: none; font-size: 2rem; opacity: 0.7; cursor: pointer;
+            background: transparent; border: none; font-size: 2rem; opacity: 0.5; cursor: pointer;
             transition: transform 0.2s; z-index: 30;
         }
-        #music-btn:active { transform: scale(0.9); }
+        #music-btn:hover { opacity: 1; transform: scale(1.1); }
 
         #toast {
             position: absolute; bottom: 50px; left: 50%; transform: translateX(-50%);
@@ -116,13 +144,23 @@
 
     <div id="ui-layer">
         <div class="top-hud">
-            <div id="shield-ui" class="shield-container">
-                <span>🛡️</span> <span id="shield-count">0</span>
+            <!-- SOL: Kalkan ve Top 10 -->
+            <div class="hud-left">
+                <div id="shield-ui" class="shield-container">
+                    <span>🛡️</span> <span id="shield-count">0</span>
+                </div>
+                <button id="show-leaderboard-btn" class="btn btn-secondary" style="border-radius: 20px;">🏆 TOP 10</button>
             </div>
-            <button id="show-leaderboard-btn" class="btn btn-secondary" style="border-radius: 10px;">🏆 TOP 10</button>
-            <div style="text-align: right;">
+
+            <!-- ORTA: Skor -->
+            <div class="hud-center">
                 <div id="score" class="score-box">0</div>
                 <div id="level-txt" class="level-indicator">SECTOR 1</div>
+            </div>
+
+            <!-- SAĞ: Tam Ekran -->
+            <div class="hud-right">
+                <button id="fullscreen-btn" class="icon-btn" title="Tam Ekran">⛶</button>
             </div>
         </div>
 
@@ -131,7 +169,7 @@
         <div id="start-screen" class="menu-screen">
             <h1>NEON LEAP</h1>
             <p style="color:#ccc; line-height: 1.6;">
-                <span style="color:#ffaa00">🔥 HIZLI OYNA (Combo)</span><br>
+                <span style="color:#ffaa00">🔥 SERİ OYNA (Combo)</span><br>
                 <span style="color:#00ff9d">🛡️ 3 COMBO = 1 JOKER</span>
             </p>
             <button class="btn" id="start-btn">BAŞLAT</button>
@@ -139,15 +177,32 @@
 
         <div id="game-over-screen" class="menu-screen hidden">
             <h2 style="color:#ff0055; margin:0;">GÖREV SONU</h2>
-            <div style="font-size:3rem; font-weight:bold;" id="final-score">0</div>
+            
+            <!-- PAYLAŞIM KUTUSU -->
+            <div class="result-box">
+                <div style="font-size:0.8rem; color:#aaa; margin-bottom:5px;">GÖREV RAPORU</div>
+                <div id="share-preview" class="emoji-strip">...</div>
+                <div style="display:flex; justify-content:space-around; align-items:center; margin-top:5px;">
+                    <div style="font-size:2rem; font-weight:bold;" id="final-score">0</div>
+                    <div style="color:#666; font-size:0.8rem;">EN İYİ: <span id="best-score">0</span></div>
+                </div>
+            </div>
+
+            <div style="display: flex; gap: 10px; width: 100%;">
+                <button class="btn btn-share" id="share-btn">📤 PAYLAŞ</button>
+            </div>
+            
+            <hr style="border:0; border-top:1px solid rgba(255,255,255,0.1); margin:15px 0; width:100%;">
+
             <div id="save-score-area">
                 <p style="font-size:0.8rem; color:#aaa;">LİDER TABLOSU İÇİN ADINI YAZ:</p>
                 <input type="text" id="player-name" placeholder="PİLOT ADI" maxlength="15">
                 <br><br>
-                <button class="btn" id="save-score-btn" style="border-color:#00ff9d; color:#00ff9d;">KAYDET</button>
+                <button class="btn" id="save-score-btn" style="border-color:#00f2ff; color:#00f2ff;">KAYDET</button>
             </div>
-            <div style="display:flex; gap:10px; justify-content:center; margin-top:15px;">
-                <button class="btn" id="restart-btn">TEKRAR</button>
+            
+            <div style="margin-top:15px;">
+                <button class="btn" id="restart-btn" style="border-color:#666; color:#ccc;">TEKRAR DENE</button>
             </div>
         </div>
 
@@ -157,10 +212,12 @@
             <br>
             <button class="btn btn-secondary" id="close-leaderboard-btn">KAPAT</button>
         </div>
+        
         <button id="music-btn">🔊</button>
     </div>
 
-    <div id="toast">Skor Kaydedildi!</div>
+    <div id="toast">Kopyalandı!</div>
+    <textarea id="clipboard-helper" style="position:absolute; left:-9999px;"></textarea>
     <canvas id="gameCanvas"></canvas>
 
     <!-- FIREBASE -->
@@ -168,7 +225,6 @@
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
         import { getFirestore, collection, addDoc, query, orderBy, limit, getDocs } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-        // SENİN API KEYLERİN
         const firebaseConfig = {
           apiKey: "AIzaSyCc4ERyMGvfAXF-dh_PRztFH707_9pKca0",
           authDomain: "neonleap-2bb89.firebaseapp.com",
@@ -219,12 +275,19 @@
 
     <!-- OYUN MOTORU -->
     <script>
-        // --- SEVİYE & TEMA AYARLARI ---
+        let gameHistory = [];
+        const HISTORY_LIMIT = 10; 
+
+        function logHistory(emoji) {
+            gameHistory.push(emoji);
+            if(gameHistory.length > HISTORY_LIMIT) gameHistory.shift();
+        }
+
         const THEMES = [
             { score: 0,  name: "SECTOR 1", bg: "#020204", main: "#00f2ff", sec: "#00ff9d" },
-            { score: 10, name: "SECTOR 2", bg: "#1a001a", main: "#ff00ff", sec: "#aa00ff" }, // HAREKETLİ
-            { score: 25, name: "SECTOR 3", bg: "#1a0a00", main: "#ff5500", sec: "#ffaa00" }, // KÜÇÜLEN
-            { score: 50, name: "THE VOID", bg: "#000000", main: "#ffffff", sec: "#555555" }  // KAOS
+            { score: 10, name: "SECTOR 2", bg: "#1a001a", main: "#ff00ff", sec: "#aa00ff" },
+            { score: 25, name: "SECTOR 3", bg: "#1a0a00", main: "#ff5500", sec: "#ffaa00" },
+            { score: 40, name: "THE VOID", bg: "#000000", main: "#ffffff", sec: "#555555" }
         ];
         let currentThemeIdx = 0;
 
@@ -241,46 +304,43 @@
             document.body.style.backgroundColor = theme.bg;
             document.getElementById('score').style.color = theme.main;
             document.getElementById('level-txt').innerText = theme.name;
-            
             const msg = document.getElementById('level-up-msg');
-            msg.innerText = "LEVEL UP!";
-            msg.style.color = theme.main;
-            
-            msg.classList.remove('levelup-anim');
-            void msg.offsetWidth; 
-            msg.classList.add('levelup-anim');
+            msg.innerText = theme.name; msg.style.color = theme.main;
+            msg.classList.remove('levelup-anim'); void msg.offsetWidth; msg.classList.add('levelup-anim');
             AudioSys.playSFX('levelup');
         }
 
-        // --- SES SİSTEMİ ---
+        // --- SES ---
         const AudioSys = {
             ctx: null, tempo: 1200, isMusicOn: true, beatCount: 0, timerID: null,
             init: function() { try { const AC = window.AudioContext || window.webkitAudioContext; if(AC && !this.ctx) this.ctx = new AC(); if(this.ctx.state === 'suspended') this.ctx.resume(); } catch(e){} },
             scheduleNextBeat: function() {
                 if (!this.isMusicOn || gameState !== 'PLAYING') return;
                 this.playBeat(this.ctx.currentTime);
-                // Tempo skora göre hızlanır (Min 300ms)
                 let currentTempo = Math.max(300, 1200 - (score * 15));
                 this.timerID = setTimeout(() => this.scheduleNextBeat(), currentTempo);
             },
             playBeat: function(time) {
                 this.beatCount++;
-                
-                // KICK (Her 4 vuruşta bir)
-                if (this.beatCount % 4 === 0 || score > 20) {
+                if (this.beatCount % 4 === 0) {
+                    const o = this.ctx.createOscillator(); const g = this.ctx.createGain();
+                    o.connect(g); g.connect(this.ctx.destination);
+                    o.type = 'sine'; o.frequency.setValueAtTime([110,130,146][Math.floor(Math.random()*3)], time);
+                    g.gain.setValueAtTime(0, time); g.gain.linearRampToValueAtTime(0.1, time+1); g.gain.linearRampToValueAtTime(0, time+4);
+                    o.start(time); o.stop(time+4);
+                }
+                if (score > 5) {
                     const o = this.ctx.createOscillator(); const g = this.ctx.createGain();
                     o.connect(g); g.connect(this.ctx.destination);
                     o.frequency.setValueAtTime(150, time); o.frequency.exponentialRampToValueAtTime(0.01, time+0.5);
-                    g.gain.setValueAtTime(0.3, time); g.gain.exponentialRampToValueAtTime(0.01, time+0.5);
+                    g.gain.setValueAtTime(0.2, time); g.gain.exponentialRampToValueAtTime(0.01, time+0.5);
                     o.start(time); o.stop(time+0.5);
                 }
-                
-                // HI-HAT (Hızlandıkça)
-                if (score > 10 && this.beatCount % 2 !== 0) {
+                if (score > 20 && this.beatCount % 2 !== 0) {
                     const o = this.ctx.createOscillator(); const g = this.ctx.createGain();
                     o.connect(g); g.connect(this.ctx.destination);
                     o.type='square'; o.frequency.setValueAtTime(800, time);
-                    g.gain.setValueAtTime(0.05, time); g.gain.exponentialRampToValueAtTime(0.01, time+0.05);
+                    g.gain.setValueAtTime(0.03, time); g.gain.exponentialRampToValueAtTime(0.01, time+0.05);
                     o.start(time); o.stop(time+0.05);
                 }
             },
@@ -305,11 +365,10 @@
             }
         };
 
-        // --- YILDIZ SİSTEMİ ---
         class Star {
             constructor() { this.reset(true); }
             reset(r=false) { this.x=Math.random()*width; this.y=r?Math.random()*height:-10; this.z=Math.random()*2+0.5; this.a=Math.random()*0.5+0.1; }
-            update() { this.y+=this.z*(0.5+(score*0.05)); if(this.y>height) this.reset(); }
+            update() { this.y+=this.z*(0.5+(score*0.02)); if(this.y>height) this.reset(); }
             draw() { ctx.fillStyle=`rgba(255,255,255,${this.a})`; ctx.beginPath(); ctx.arc(this.x, this.y, this.z*0.8, 0, 6.28); ctx.fill(); }
         }
 
@@ -327,42 +386,22 @@
                 if(Math.random()>0.5) this.trail.push({x:this.x, y:this.y, l:1});
                 this.trail.forEach(t=>t.l-=0.1); this.trail=this.trail.filter(t=>t.l>0);
                 
-                // KURTARMA MODU (DÜZELTİLDİ: Mıknatıs ve Işınlanma)
+                // KURTARMA
                 if(gameState==='RECOVERING') {
-                     // En yakın orbu bul
                      let target = null, minD = 99999;
-                     orbs.forEach(o => {
-                        let d = Math.hypot(o.x - this.x, o.y - this.y);
-                        if(d < minD) { minD = d; target = o; }
-                     });
-                     
-                     // Eğer hedef yoksa veya çok uzaksa (ekran dışı), en üstteki orba ışınla
-                     if(!target || minD > 800) {
-                         if(orbs.length > 0) target = orbs[orbs.length-1];
-                     }
-
+                     orbs.forEach(o => { let d = Math.hypot(o.x - this.x, o.y - this.y); if(d < minD) { minD = d; target = o; } });
+                     if(!target && orbs.length > 0) target = orbs[orbs.length-1];
                      if(target) {
-                         // Hızla orba çek
-                         this.x += (target.x - this.x) * 0.15;
-                         this.y += (target.y - this.y) * 0.15;
-                         
-                         // Yeterince yakınsa YAPIŞ
-                         if(Math.hypot(target.x - this.x, target.y - this.y) < target.rad + 30) { 
-                             attachPlayer(target); 
-                             gameState='PLAYING'; 
-                             spawnFloatingText(width/2, height/2, "SİSTEM AKTİF", "#00ff9d"); 
+                         this.x += (target.x - this.x) * 0.15; this.y += (target.y - this.y) * 0.15;
+                         if(Math.hypot(target.x - this.x, target.y - this.y) < target.rad + 20) { 
+                             attachPlayer(target); gameState='PLAYING'; spawnFloatingText(width/2, height/2, "SİSTEM AKTİF", "#00ff9d"); 
                          }
                      }
                      return;
                 }
 
                 if(this.orbiting && this.currentOrb) {
-                    // Seviyeye göre dönüş hızı
-                    let baseSpeed = 0.04;
-                    if(score > 40) baseSpeed = 0.06;
-                    let speed = baseSpeed + (score * 0.0005);
-                    if(speed > 0.12) speed = 0.12;
-
+                    let speed = 0.04 + (score*0.0005); if(speed>0.1) speed=0.1;
                     this.angle += speed * this.currentOrb.dir;
                     this.x = this.currentOrb.x + Math.cos(this.angle)*this.currentOrb.rad;
                     this.y = this.currentOrb.y + Math.sin(this.angle)*this.currentOrb.rad;
@@ -379,14 +418,9 @@
                 let dy=this.y-cameraY;
                 let currentTheme = THEMES[currentThemeIdx];
                 let trailColor = gameState==='RECOVERING' ? '#00ff9d' : currentTheme.main;
-
                 ctx.beginPath(); this.trail.forEach(t=>ctx.lineTo(t.x, t.y-cameraY)); ctx.strokeStyle=trailColor; ctx.lineWidth=2; ctx.stroke();
                 ctx.save(); ctx.translate(this.x, dy); ctx.rotate(this.rotation);
-                
-                if(shields>0 && gameState==='PLAYING') {
-                    ctx.beginPath(); ctx.arc(0,0,25,0,6.28); ctx.strokeStyle=`rgba(0,255,157,${0.3+Math.sin(Date.now()*0.01)*0.2})`; ctx.lineWidth=2; ctx.stroke();
-                }
-                
+                if(shields>0 && gameState==='PLAYING') { ctx.beginPath(); ctx.arc(0,0,25,0,6.28); ctx.strokeStyle=`rgba(0,255,157,${0.3+Math.sin(Date.now()*0.01)*0.2})`; ctx.lineWidth=2; ctx.stroke(); }
                 ctx.beginPath(); ctx.moveTo(15,0); ctx.lineTo(-10,10); ctx.lineTo(-5,0); ctx.lineTo(-10,-10); ctx.fillStyle='#fff'; ctx.fill();
                 ctx.restore();
             }
@@ -395,24 +429,23 @@
                     let timeSpent = Date.now() - this.attachTime;
                     if (timeSpent < 1500 && timeSpent > 50) {
                         comboCount++;
+                        logHistory('🔥'); 
                         if(comboCount < 3) {
                             AudioSys.playSFX('combo');
                             spawnFloatingText(this.x, this.y - 50, `SERİ x${comboCount}`, "#ffaa00");
                         } else if (comboCount === 3) {
                             shields++; 
                             document.getElementById('shield-count').innerText=shields;
-                            const sUI = document.getElementById('shield-ui');
-                            sUI.classList.add('shield-active');
-                            setTimeout(()=>sUI.classList.remove('shield-active'), 500);
+                            const sUI = document.getElementById('shield-ui'); sUI.classList.add('shield-active'); setTimeout(()=>sUI.classList.remove('shield-active'), 500);
                             spawnFloatingText(this.x, this.y - 80, "JOKER KAZANDIN!", "#00ff9d");
                             AudioSys.playSFX('shield_get');
                             comboCount = 0;
                         }
                     } else {
+                        logHistory('🔵');
                         if(comboCount > 0) spawnFloatingText(this.x, this.y - 50, "SERİ BOZULDU", "#ff5555");
                         comboCount = 0;
                     }
-
                     this.orbiting=false;
                     let p = 13 + score*0.05; if(p>22) p=22;
                     this.vx = Math.cos(this.rotation)*p; this.vy = Math.sin(this.rotation)*p;
@@ -425,39 +458,21 @@
             constructor(y) { 
                 this.y=y; this.rad=60+Math.random()*20; this.x=Math.random()*(width-this.rad*2)+this.rad; 
                 this.dir=Math.random()>0.5?1:-1; 
-                
-                // SEVİYE ZORLUKLARI
-                this.moving = false;
-                this.shrinking = false;
+                this.moving = false; this.shrinking = false;
                 this.dx = (Math.random() * 1.5 + 0.5) * (Math.random()>0.5?1:-1);
-
-                if(score >= 10) { // Level 2: Hareket
-                    this.moving = Math.random() > 0.4;
-                }
-                if(score >= 25) { // Level 3: Küçülme
-                    this.shrinking = Math.random() > 0.5;
-                }
+                if(score >= 10) this.moving = Math.random() > 0.4;
+                if(score >= 25) this.shrinking = Math.random() > 0.5;
             }
             update() {
                 if(gameState !== 'PLAYING') return;
-                
-                if(this.moving) {
-                    this.x += this.dx;
-                    if(this.x < this.rad || this.x > width - this.rad) this.dx *= -1;
-                }
-                if(this.shrinking && this.rad > 25) {
-                    this.rad -= 0.05;
-                }
+                if(this.moving) { this.x += this.dx; if(this.x < this.rad || this.x > width - this.rad) this.dx *= -1; }
+                if(this.shrinking && this.rad > 25) this.rad -= 0.05;
             }
             draw() { 
                 let dy=this.y-cameraY; if(dy<-200||dy>height+200) return; 
                 let theme = THEMES[currentThemeIdx];
                 ctx.beginPath(); ctx.arc(this.x, dy, this.rad, 0, 6.28); ctx.strokeStyle='#333'; ctx.lineWidth=3; ctx.stroke(); 
-                
-                // İç Halka
                 ctx.beginPath(); ctx.arc(this.x, dy, this.rad-5, 0, 6.28); ctx.strokeStyle=theme.main; ctx.lineWidth=1; ctx.stroke(); 
-                
-                // Merkez (Küçülenlerde kırmızı nokta)
                 if(this.shrinking) { ctx.fillStyle='#ff0000'; ctx.beginPath(); ctx.arc(this.x, dy, 3, 0, 6.28); ctx.fill(); }
             }
         }
@@ -465,6 +480,7 @@
         function init() {
             width=window.innerWidth; height=window.innerHeight; canvas.width=width; canvas.height=height;
             player=new Player(); score=0; shields=0; comboCount=0; orbs=[]; stars=[]; window.gameScore=0; currentThemeIdx=0;
+            gameHistory = [];
             for(let i=0; i<100; i++) stars.push(new Star());
             let start=new Orb(height-200); start.x=width/2; start.moving=false; start.shrinking=false; orbs.push(start);
             player.orbiting=true; player.currentOrb=start; player.angle=-Math.PI/2; 
@@ -492,13 +508,8 @@
                         attachPlayer(o); 
                         score++; window.gameScore=score; 
                         document.getElementById('score').innerText=score; 
-                        
-                        // Level Kontrol
                         let nextIdx = currentThemeIdx + 1;
-                        if(nextIdx < THEMES.length && score >= THEMES[nextIdx].score) {
-                            currentThemeIdx = nextIdx;
-                            triggerLevelUp(currentThemeIdx);
-                        }
+                        if(nextIdx < THEMES.length && score >= THEMES[nextIdx].score) { currentThemeIdx = nextIdx; triggerLevelUp(currentThemeIdx); }
                     } 
                 } 
             }); 
@@ -507,41 +518,64 @@
         function trySavePlayer() {
             if(shields>0) {
                 shields--; document.getElementById('shield-count').innerText=shields;
-                AudioSys.playSFX('recover'); gameState='RECOVERING'; player.vx=0; player.vy=0;
+                AudioSys.playSFX('recover'); logHistory('🛡️');
+                gameState='RECOVERING'; player.vx=0; player.vy=0;
                 spawnFloatingText(width/2, height/2, "KURTARMA MODU!", "#00ff9d");
             } else { gameOver(); }
         }
 
         function gameOver() {
             gameState='GAMEOVER'; AudioSys.stopMusic(); AudioSys.playSFX('die');
+            logHistory('💀');
+            
+            let historyStr = gameHistory.slice(-10).join('');
+            document.getElementById('share-preview').innerText = historyStr;
+
+            // BEST SCORE UPDATE
+            let personalBest = localStorage.getItem('neonLeapBest') || 0;
+            if (score > personalBest) { personalBest = score; localStorage.setItem('neonLeapBest', personalBest); }
+            
             document.getElementById('final-score').innerText = score;
+            document.getElementById('best-score').innerText = personalBest;
+
             document.getElementById('game-over-screen').classList.remove('hidden');
             document.getElementById('save-score-area').style.display = 'block';
+        }
+
+        function copyToClipboard() {
+            let historyStr = gameHistory.slice(-10).join('');
+            let text = `Neon Leap 🚀\n${historyStr}\nSkor: ${score}`;
+            const textArea = document.getElementById("clipboard-helper");
+            textArea.value = text; textArea.select();
+            try { document.execCommand("copy"); showToast("Kopyalandı!"); } catch (err) {}
+        }
+
+        function toggleFullScreen() {
+            if (!document.fullscreenElement) { document.documentElement.requestFullscreen(); } 
+            else { if (document.exitFullscreen) document.exitFullscreen(); }
         }
 
         function loop() {
             ctx.fillStyle=THEMES[currentThemeIdx].bg; ctx.fillRect(0,0,width,height);
             stars.forEach(s => { s.update(); s.draw(); });
             if(gameState==='PLAYING' || gameState==='RECOVERING') { player.update(); let tCam = player.y - height/1.8; if(tCam<cameraY) cameraY+=(tCam-cameraY)*0.1; if(gameState==='PLAYING') { generateOrbs(); checkCols(); } }
-            
             orbs.forEach(o => { o.update(); o.draw(); });
-            
             if(gameState === 'RECOVERING') {
-                // Görsel Işın
                 let target = orbs.find(o => Math.hypot(o.x - player.x, o.y - player.y) < 800) || orbs[orbs.length-1];
                 if(target) {
                     ctx.beginPath(); ctx.moveTo(player.x, player.y-cameraY); ctx.lineTo(target.x, target.y-cameraY);
                     ctx.setLineDash([15, 15]); ctx.strokeStyle = '#00ff9d'; ctx.lineWidth = 4; ctx.stroke(); ctx.setLineDash([]);
                 }
             }
-            
             player.draw();
             if(gameState!=='GAMEOVER') requestAnimationFrame(loop);
         }
 
         document.getElementById('start-btn').addEventListener('click', ()=>{ AudioSys.init(); AudioSys.startMusic(); init(); gameState='PLAYING'; document.getElementById('start-screen').classList.add('hidden'); loop(); });
         document.getElementById('restart-btn').addEventListener('click', ()=>{ document.getElementById('game-over-screen').classList.add('hidden'); init(); gameState='PLAYING'; AudioSys.startMusic(); loop(); });
+        document.getElementById('share-btn').addEventListener('click', copyToClipboard);
         document.getElementById('music-btn').addEventListener('click', (e) => { e.stopPropagation(); AudioSys.toggle(); });
+        document.getElementById('fullscreen-btn').addEventListener('click', (e) => { e.stopPropagation(); toggleFullScreen(); });
 
         window.addEventListener('mousedown', e=>{ if(e.target.tagName!=='BUTTON' && e.target.tagName!=='INPUT') if(gameState==='PLAYING') player.jump(); });
         window.addEventListener('touchstart', e=>{ if(e.target.tagName!=='BUTTON' && e.target.tagName!=='INPUT') {e.preventDefault(); if(gameState==='PLAYING') player.jump();} }, {passive:false});
