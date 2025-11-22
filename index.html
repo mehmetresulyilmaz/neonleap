@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="tr">
 <head>
     <!-- Google tag (gtag.js) -->
     <script async src="https://www.googletagmanager.com/gtag/js?id=G-9YQEJ7LN0E"></script>
@@ -12,7 +12,7 @@
 
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Neon Leap: Global</title>
+    <title>Neon Leap: Gold Rush</title>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&display=swap');
         
@@ -25,7 +25,7 @@
         }
         canvas { display: block; width: 100%; height: 100%; }
 
-        /* UI */
+        /* UI KATMANI */
         #ui-layer {
             position: absolute; top: 0; left: 0; width: 100%; height: 100%;
             pointer-events: none; z-index: 20;
@@ -39,12 +39,12 @@
             align-items: center; padding: 0 20px; box-sizing: border-box;
             pointer-events: auto;
         }
+        
         .hud-left { display: flex; align-items: center; gap: 10px; justify-self: start; }
         .hud-center { text-align: center; }
-        .hud-right { justify-self: end; display: flex; gap: 15px; }
-
         .score-box { font-size: 3rem; font-weight: 900; transition: color 0.5s; line-height: 1; }
         .level-indicator { font-size: 0.7rem; color: rgba(255,255,255,0.5); letter-spacing: 2px; }
+        .hud-right { justify-self: end; display: flex; gap: 15px; align-items: center; }
 
         .shield-container {
             display: flex; align-items: center; gap: 8px;
@@ -54,6 +54,14 @@
             transition: all 0.3s;
         }
         .shield-active { transform: scale(1.3); background: rgba(0, 255, 157, 0.6); box-shadow: 0 0 30px #00ff9d; color: #000; }
+
+        .credits-box {
+            color: #ffd700; font-size: 1rem; font-weight: bold;
+            display: flex; align-items: center; gap: 5px;
+            text-shadow: 0 0 5px #ffd700;
+            background: rgba(255, 215, 0, 0.1);
+            padding: 5px 10px; border-radius: 15px; border: 1px solid rgba(255, 215, 0, 0.3);
+        }
 
         /* BUTONLAR */
         .icon-btn {
@@ -66,11 +74,11 @@
         .menu-screen {
             pointer-events: auto; position: absolute; top: 50%; left: 50%;
             transform: translate(-50%, -50%);
-            background: rgba(10, 15, 25, 0.95); padding: 2rem;
+            background: rgba(10, 15, 25, 0.98); padding: 2rem;
             border-radius: 20px; border: 1px solid rgba(0, 242, 255, 0.3);
             text-align: center; display: flex; flex-direction: column; gap: 1rem;
             box-shadow: 0 0 60px rgba(0,0,0,0.8); min-width: 320px; max-width: 90%;
-            backdrop-filter: blur(10px); z-index: 50;
+            backdrop-filter: blur(15px); z-index: 50;
         }
         h1 { margin: 0; font-size: 2.5rem; background: linear-gradient(to right, #00f2ff, #00ff9d); -webkit-background-clip: text; color: transparent; }
         
@@ -84,6 +92,33 @@
         .btn-share:hover { background: #00ff9d; color: black; }
         .btn-secondary { border-color: #666; color: #aaa; font-size: 0.8rem; padding: 8px 16px; width: auto; }
         .hidden { display: none !important; }
+
+        /* SHOP STİLLERİ */
+        .shop-grid {
+            display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px;
+            max-height: 300px; overflow-y: auto; padding: 5px;
+        }
+        .shop-item {
+            border: 1px solid #444; border-radius: 10px; padding: 10px;
+            cursor: pointer; transition: 0.2s; position: relative;
+            background: rgba(0,0,0,0.3);
+        }
+        .shop-item:hover { border-color: #fff; background: rgba(255,255,255,0.1); }
+        .shop-item.selected { border-color: #00ff9d; box-shadow: 0 0 15px rgba(0,255,157,0.3); background: rgba(0, 255, 157, 0.05); }
+        .shop-item-preview {
+            width: 40px; height: 40px; margin: 0 auto 10px;
+            display: flex; justify-content: center; align-items: center;
+        }
+        /* Gemi önizlemesi için */
+        .preview-ship {
+            width: 0; height: 0;
+            border-left: 10px solid transparent;
+            border-right: 10px solid transparent;
+            border-bottom: 25px solid white;
+        }
+        .shop-price { font-size: 0.9rem; color: #ffd700; font-weight: bold; }
+        .shop-owned { font-size: 0.8rem; color: #aaa; }
+        .shop-active-text { font-size: 0.8rem; color: #00ff9d; font-weight: bold; }
 
         .result-box {
             background: rgba(255, 255, 255, 0.05); border-radius: 10px; padding: 15px;
@@ -108,9 +143,12 @@
 
         .floating-text {
             position: absolute; font-weight: 900; pointer-events: none;
-            animation: floatUp 1.2s forwards; text-shadow: 0 0 10px black; white-space: nowrap; font-size: 1.5rem; z-index: 10;
+            animation: floatUp 1.5s forwards; text-shadow: 0 0 10px black; white-space: nowrap; font-size: 1.5rem; z-index: 10;
         }
-        @keyframes floatUp { 0% { transform: translateY(0) scale(1); opacity: 1; } 100% { transform: translateY(-120px) scale(1.5); opacity: 0; } }
+        @keyframes floatUp { 
+            0% { transform: translateY(0) scale(1); opacity: 1; } 
+            100% { transform: translateY(-120px) scale(1.5); opacity: 0; } 
+        }
 
         #level-up-msg {
             position: absolute; top: 35%; width: 100%; text-align: center;
@@ -125,7 +163,6 @@
             100% { opacity: 0; transform: scale(1.5) translateY(-50px); }
         }
 
-        /* SES KONTROLLERİ */
         .audio-controls {
             position: absolute; bottom: 20px; right: 20px; pointer-events: auto;
             display: flex; gap: 15px; z-index: 30;
@@ -151,10 +188,10 @@
     <div id="ui-layer">
         <div class="top-hud">
             <div class="hud-left">
+                <button id="pause-btn" class="icon-btn" title="Durdur">⏸️</button>
                 <div id="shield-ui" class="shield-container">
                     <span>🛡️</span> <span id="shield-count">0</span>
                 </div>
-                <button id="show-leaderboard-btn" class="btn btn-secondary" style="border-radius: 20px;" data-i18n="btn_top10">🏆 TOP 10</button>
             </div>
 
             <div class="hud-center">
@@ -163,12 +200,25 @@
             </div>
 
             <div class="hud-right">
+                <div class="credits-box">
+                    <span id="total-credits">0</span> <span>🟡</span>
+                </div>
+                <button id="shop-btn" class="icon-btn" title="Market">🛒</button>
+                <button id="show-leaderboard-btn" class="icon-btn" title="Lider Tablosu">🏆</button>
                 <button id="fullscreen-btn" class="icon-btn" title="Tam Ekran">⛶</button>
             </div>
         </div>
 
         <div id="level-up-msg">LEVEL UP!</div>
 
+        <!-- PAUSE -->
+        <div id="pause-screen" class="menu-screen hidden">
+            <h1>PAUSED</h1>
+            <button class="btn" id="resume-btn">DEVAM ET</button>
+            <button class="btn btn-secondary" id="quit-btn">ÇIKIŞ</button>
+        </div>
+
+        <!-- START -->
         <div id="start-screen" class="menu-screen">
             <h1>NEON LEAP</h1>
             <p style="color:#ccc; line-height: 1.6;">
@@ -178,6 +228,18 @@
             <button class="btn" id="start-btn" data-i18n="btn_start">BAŞLAT</button>
         </div>
 
+        <!-- MARKET -->
+        <div id="shop-screen" class="menu-screen hidden">
+            <h2 style="color:#ffd700;">MARKET</h2>
+            <div class="credits-box" style="justify-content:center; margin-bottom:15px; background:none; border:none;">
+                <span>BAKİYE:</span> <span id="shop-credits" style="font-size:1.5rem;">0</span> 🟡
+            </div>
+            <div class="shop-grid" id="shop-grid"></div>
+            <br>
+            <button class="btn btn-secondary" id="close-shop-btn">KAPAT</button>
+        </div>
+
+        <!-- GAME OVER -->
         <div id="game-over-screen" class="menu-screen hidden">
             <h2 style="color:#ff0055; margin:0;" data-i18n="game_over_title">GÖREV SONU</h2>
             
@@ -208,6 +270,7 @@
             </div>
         </div>
 
+        <!-- LEADERBOARD -->
         <div id="leaderboard-screen" class="menu-screen hidden" style="z-index: 100;">
             <h2 style="color:#ffd700; margin-bottom: 10px;" data-i18n="leaderboard_title">🏆 TOP 10 PİLOT</h2>
             <div id="leaderboard-content" class="loading" data-i18n="loading">Yükleniyor...</div>
@@ -225,11 +288,11 @@
     <textarea id="clipboard-helper" style="position:absolute; left:-9999px;"></textarea>
     <canvas id="gameCanvas"></canvas>
 
-    <!-- ÇOKLU DİL DESTEĞİ -->
+    <!-- ÇOKLU DİL -->
     <script>
         const TRANSLATIONS = {
             tr: {
-                start_subtitle_1: "🔥 SERİ OYNA (Combo)",
+                start_subtitle_1: "🔥 HIZLI OYNA (Combo)",
                 start_subtitle_2: "🛡️ 3 COMBO = 1 JOKER",
                 btn_start: "BAŞLAT",
                 game_over_title: "GÖREV SONU",
@@ -240,15 +303,12 @@
                 placeholder_name: "PİLOT ADI",
                 btn_save: "KAYDET",
                 btn_retry: "TEKRAR DENE",
-                btn_top10: "🏆 TOP 10",
                 leaderboard_title: "🏆 TOP 10 PİLOT",
                 btn_close: "KAPAT",
-                // JS Dynamic
                 level_up: "SEVİYE ATLADI!",
                 combo_x: "SERİ x",
                 combo_broken: "SERİ BOZULDU",
                 shield_gained: "JOKER KAZANDIN!",
-                slow: "YAVAŞ",
                 recovery_mode: "KURTARMA MODU!",
                 system_active: "SİSTEM AKTİF",
                 copied: "Kopyalandı!",
@@ -259,7 +319,10 @@
                 db_error: "Bağlantı hatası!",
                 enter_name_alert: "Lütfen bir isim girin.",
                 share_title: "Neon Leap 🚀",
-                share_score: "Skor:"
+                share_score: "Skor:",
+                paused: "DURAKLATILDI",
+                resume: "DEVAM ET",
+                quit: "ÇIKIŞ"
             },
             en: {
                 start_subtitle_1: "🔥 FAST PLAY (Combo)",
@@ -273,15 +336,12 @@
                 placeholder_name: "PILOT NAME",
                 btn_save: "SAVE",
                 btn_retry: "RETRY",
-                btn_top10: "🏆 TOP 10",
                 leaderboard_title: "🏆 TOP 10 PILOTS",
                 btn_close: "CLOSE",
-                // JS Dynamic
                 level_up: "LEVEL UP!",
                 combo_x: "COMBO x",
                 combo_broken: "COMBO BROKEN",
                 shield_gained: "SHIELD GAINED!",
-                slow: "TOO SLOW",
                 recovery_mode: "RECOVERY MODE!",
                 system_active: "SYSTEM ACTIVE",
                 copied: "Copied!",
@@ -292,23 +352,24 @@
                 db_error: "Connection error!",
                 enter_name_alert: "Please enter a name.",
                 share_title: "Neon Leap 🚀",
-                share_score: "Score:"
+                share_score: "Score:",
+                paused: "PAUSED",
+                resume: "RESUME",
+                quit: "QUIT"
             }
         };
-
-        // Dil Tespiti
         const userLang = navigator.language || navigator.userLanguage; 
-        const langCode = userLang.startsWith('tr') ? 'tr' : 'en'; // TR ise TR, değilse EN (varsayılan)
+        const langCode = userLang.startsWith('tr') ? 'tr' : 'en'; 
         const T = TRANSLATIONS[langCode];
-
-        // UI Metinlerini Güncelle
         document.addEventListener('DOMContentLoaded', () => {
             document.querySelectorAll('[data-i18n]').forEach(el => {
                 const key = el.getAttribute('data-i18n');
                 if(T[key]) el.innerText = T[key];
             });
-            // Placeholder özel durum
             document.getElementById('player-name').placeholder = T.placeholder_name;
+            document.getElementById('pause-screen').querySelector('h1').innerText = T.paused;
+            document.getElementById('resume-btn').innerText = T.resume;
+            document.getElementById('quit-btn').innerText = T.quit;
         });
     </script>
 
@@ -372,8 +433,82 @@
 
     <!-- OYUN MOTORU -->
     <script>
+        // --- GLOBAL DURUMLAR ---
         let gameHistory = [];
-        const HISTORY_LIMIT = 10; 
+        const HISTORY_LIMIT = 10;
+        
+        // MARKET SİSTEMİ
+        let totalCredits = parseInt(localStorage.getItem('neonLeapCredits') || '0');
+        let currentSkin = localStorage.getItem('neonLeapSkin') || 'default';
+        
+        const SKINS = [
+            { id: 'default', name: 'Neon White', cost: 0, color: '#ffffff' },
+            { id: 'gold', name: 'Golden Legend', cost: 100, color: '#ffd700' },
+            { id: 'cyber', name: 'Cyber Pink', cost: 250, color: '#ff00ff' },
+            { id: 'ghost', name: 'Ghost Blue', cost: 500, color: '#00ffff' },
+            { id: 'red', name: 'Red Fury', cost: 1000, color: '#ff0000' }
+        ];
+
+        function updateCreditsDisplay() {
+            document.getElementById('total-credits').innerText = totalCredits;
+            document.getElementById('shop-credits').innerText = totalCredits;
+        }
+
+        function addCredits(amount) {
+            totalCredits += amount;
+            localStorage.setItem('neonLeapCredits', totalCredits);
+            updateCreditsDisplay();
+            spawnFloatingText(width/2, 100, `+${amount} 🟡`, "#ffd700");
+        }
+
+        // --- MARKET UI RENDER ---
+        function renderShop() {
+            const grid = document.getElementById('shop-grid');
+            grid.innerHTML = '';
+            SKINS.forEach(skin => {
+                // localStorage 'true' string'ini kontrol et
+                const isOwned = skin.cost === 0 || (localStorage.getItem('skin_' + skin.id) === 'true');
+                const isSelected = currentSkin === skin.id;
+                
+                const item = document.createElement('div');
+                item.className = `shop-item ${isSelected ? 'selected' : ''}`;
+                item.innerHTML = `
+                    <div class="shop-item-preview">
+                        <div class="preview-ship" style="border-bottom-color: ${skin.color}; filter: drop-shadow(0 0 5px ${skin.color})"></div>
+                    </div>
+                    <div style="font-weight:bold; font-size:0.8rem; margin-bottom:5px;">${skin.name}</div>
+                    <div class="${isOwned ? (isSelected ? 'shop-active-text' : 'shop-owned') : 'shop-price'}">
+                        ${isOwned ? (isSelected ? 'KULLANILIYOR' : 'SAHİPSİN') : skin.cost + ' 🟡'}
+                    </div>
+                `;
+                
+                item.onclick = () => buyOrSelectSkin(skin, isOwned);
+                grid.appendChild(item);
+            });
+        }
+
+        function buyOrSelectSkin(skin, isOwned) {
+            if (isOwned) {
+                currentSkin = skin.id;
+                localStorage.setItem('neonLeapSkin', currentSkin);
+                renderShop();
+                AudioSys.playSFX('dock');
+            } else {
+                if (totalCredits >= skin.cost) {
+                    totalCredits -= skin.cost;
+                    localStorage.setItem('neonLeapCredits', totalCredits);
+                    localStorage.setItem('skin_' + skin.id, 'true'); // String olarak kaydet
+                    currentSkin = skin.id; // Otomatik seç
+                    localStorage.setItem('neonLeapSkin', currentSkin);
+                    updateCreditsDisplay();
+                    renderShop();
+                    AudioSys.playSFX('levelup');
+                    showToast("SATIN ALINDI!");
+                } else {
+                    showToast("YETERSİZ KREDİ!");
+                }
+            }
+        }
 
         function logHistory(emoji) {
             gameHistory.push(emoji);
@@ -407,45 +542,42 @@
             AudioSys.playSFX('levelup');
         }
 
-        // --- SES ---
+        // --- SES (SYNTHWAVE ENGINE) ---
         const AudioSys = {
-            ctx: null, tempo: 1200, isMusicOn: true, isSfxOn: true, beatCount: 0, timerID: null,
-            
+            ctx: null, tempo: 100, isMusicOn: true, isSfxOn: true, beatCount: 0, timerID: null,
+            scale: [130.81, 155.56, 174.61, 196.00, 233.08, 261.63],
+            bassScale: [65.41, 77.78, 87.31, 98.00],
+
             init: function() { try { const AC = window.AudioContext || window.webkitAudioContext; if(AC && !this.ctx) this.ctx = new AC(); if(this.ctx.state === 'suspended') this.ctx.resume(); } catch(e){} },
             
             scheduleNextBeat: function() {
                 if (!this.isMusicOn || gameState !== 'PLAYING') return;
-                this.playBeat(this.ctx.currentTime);
-                let currentTempo = Math.max(300, 1200 - (score * 15));
-                this.timerID = setTimeout(() => this.scheduleNextBeat(), currentTempo);
+                const secondsPerBeat = 60.0 / this.tempo;
+                const secondsPer16th = secondsPerBeat / 4;
+                this.playBeat(this.ctx.currentTime, this.beatCount);
+                this.beatCount = (this.beatCount + 1) % 16; 
+                this.timerID = setTimeout(() => this.scheduleNextBeat(), secondsPer16th * 1000);
             },
             
-            playBeat: function(time) {
-                this.beatCount++;
-                if (this.beatCount % 4 === 0) {
-                    const o = this.ctx.createOscillator(); const g = this.ctx.createGain();
-                    o.connect(g); g.connect(this.ctx.destination);
-                    o.type = 'sine'; o.frequency.setValueAtTime([110,130,146][Math.floor(Math.random()*3)], time);
-                    g.gain.setValueAtTime(0, time); g.gain.linearRampToValueAtTime(0.1, time+1); g.gain.linearRampToValueAtTime(0, time+4);
-                    o.start(time); o.stop(time+4);
-                }
+            updateTempo: function() {
+                this.tempo = Math.min(160, 100 + (score * 1.5));
+            },
+
+            playBeat: function(time, step) {
+                this.updateTempo();
+                if (step % 4 === 0) this.playDrum(time, 100, 'kick');
+                if (score > 10 && step % 2 !== 0) this.playDrum(time, 800, 'hat');
                 if (score > 5) {
-                    const o = this.ctx.createOscillator(); const g = this.ctx.createGain();
-                    o.connect(g); g.connect(this.ctx.destination);
-                    o.frequency.setValueAtTime(150, time); o.frequency.exponentialRampToValueAtTime(0.01, time+0.5);
-                    g.gain.setValueAtTime(0.2, time); g.gain.exponentialRampToValueAtTime(0.01, time+0.5);
-                    o.start(time); o.stop(time+0.5);
+                    let noteIdx = Math.floor(step / 4) % this.bassScale.length;
+                    if (step % 2 === 0) this.playSynth(time, this.bassScale[noteIdx], 'sawtooth', 0.15, 0.1);
                 }
-                if (score > 20 && this.beatCount % 2 !== 0) {
-                    const o = this.ctx.createOscillator(); const g = this.ctx.createGain();
-                    o.connect(g); g.connect(this.ctx.destination);
-                    o.type='square'; o.frequency.setValueAtTime(800, time);
-                    g.gain.setValueAtTime(0.03, time); g.gain.exponentialRampToValueAtTime(0.01, time+0.05);
-                    o.start(time); o.stop(time+0.05);
+                if (score > 20 && Math.random() > 0.6 && step % 2 === 0) {
+                    let note = this.scale[Math.floor(Math.random() * this.scale.length)];
+                    this.playSynth(time, note * 2, 'square', 0.05, 0.1);
                 }
             },
             
-            startMusic: function() { if (this.timerID) clearTimeout(this.timerID); this.beatCount=0; this.scheduleNextBeat(); },
+            startMusic: function() { if (this.timerID) clearTimeout(this.timerID); this.beatCount = 0; this.tempo = 100; this.scheduleNextBeat(); },
             stopMusic: function() { if (this.timerID) clearTimeout(this.timerID); },
             
             toggleMusic: function() {
@@ -459,12 +591,36 @@
                 document.getElementById('sfx-btn').classList.toggle('audio-off', !this.isSfxOn);
             },
 
+            playDrum: function(time, freq, type) {
+                if (!this.ctx) return;
+                const osc = this.ctx.createOscillator();
+                const gain = this.ctx.createGain();
+                osc.connect(gain); gain.connect(this.ctx.destination);
+                if (type === 'kick') {
+                    osc.frequency.setValueAtTime(freq, time); osc.frequency.exponentialRampToValueAtTime(0.01, time + 0.5);
+                    gain.gain.setValueAtTime(0.5, time); gain.gain.exponentialRampToValueAtTime(0.01, time + 0.5);
+                } else if (type === 'hat') {
+                    osc.type = 'square'; osc.frequency.setValueAtTime(freq, time);
+                    gain.gain.setValueAtTime(0.05, time); gain.gain.exponentialRampToValueAtTime(0.01, time + 0.05);
+                }
+                osc.start(time); osc.stop(time + 0.5);
+            },
+
+            playSynth: function(time, freq, type, vol, dur) {
+                if (!this.ctx) return;
+                const osc = this.ctx.createOscillator();
+                const gain = this.ctx.createGain();
+                osc.connect(gain); gain.connect(this.ctx.destination);
+                osc.type = type; osc.frequency.setValueAtTime(freq, time);
+                gain.gain.setValueAtTime(0, time); gain.gain.linearRampToValueAtTime(vol, time + 0.02); gain.gain.exponentialRampToValueAtTime(0.01, time + dur);
+                osc.start(time); osc.stop(time + dur);
+            },
+
             playSFX: function(type) {
                 if(!this.ctx || !this.isSfxOn) return;
                 const t = this.ctx.currentTime;
                 const o = this.ctx.createOscillator(); const g = this.ctx.createGain();
                 o.connect(g); g.connect(this.ctx.destination);
-                
                 if(type==='dock') { o.type='triangle'; o.frequency.setValueAtTime(300, t); o.frequency.exponentialRampToValueAtTime(50, t+0.15); g.gain.setValueAtTime(0.1, t); g.gain.linearRampToValueAtTime(0, t+0.15); o.start(t); o.stop(t+0.15); }
                 else if(type==='jump') { o.type='sawtooth'; o.frequency.setValueAtTime(100, t); o.frequency.linearRampToValueAtTime(400, t+0.3); g.gain.setValueAtTime(0.1, t); g.gain.exponentialRampToValueAtTime(0.01, t+0.3); o.start(t); o.stop(t+0.3); }
                 else if(type==='combo') { o.type='sine'; o.frequency.setValueAtTime(600, t); o.frequency.exponentialRampToValueAtTime(1200, t+0.2); g.gain.setValueAtTime(0.2, t); g.gain.linearRampToValueAtTime(0, t+0.2); o.start(t); o.stop(t+0.2); }
@@ -526,22 +682,31 @@
             draw() {
                 let dy=this.y-cameraY;
                 let currentTheme = THEMES[currentThemeIdx];
-                let trailColor = gameState==='RECOVERING' ? '#00ff9d' : currentTheme.main;
+                let skin = SKINS.find(s => s.id === currentSkin) || SKINS[0];
+                let trailColor = gameState==='RECOVERING' ? '#00ff9d' : skin.color;
+
                 ctx.beginPath(); this.trail.forEach(t=>ctx.lineTo(t.x, t.y-cameraY)); ctx.strokeStyle=trailColor; ctx.lineWidth=2; ctx.stroke();
                 ctx.save(); ctx.translate(this.x, dy); ctx.rotate(this.rotation);
                 if(shields>0 && gameState==='PLAYING') { ctx.beginPath(); ctx.arc(0,0,25,0,6.28); ctx.strokeStyle=`rgba(0,255,157,${0.3+Math.sin(Date.now()*0.01)*0.2})`; ctx.lineWidth=2; ctx.stroke(); }
-                ctx.beginPath(); ctx.moveTo(15,0); ctx.lineTo(-10,10); ctx.lineTo(-5,0); ctx.lineTo(-10,-10); ctx.fillStyle='#fff'; ctx.fill();
+                
+                // Skin Rengi ile Gemi Çizimi
+                ctx.beginPath(); ctx.moveTo(15,0); ctx.lineTo(-10,10); ctx.lineTo(-5,0); ctx.lineTo(-10,-10); 
+                ctx.fillStyle = skin.color; 
+                ctx.fill();
+                
                 ctx.restore();
             }
             jump() {
                 if(this.orbiting) {
                     let timeSpent = Date.now() - this.attachTime;
+                    // 1.5 Saniye Combo Hakkı
                     if (timeSpent < 1500 && timeSpent > 50) {
                         comboCount++;
                         logHistory('🔥'); 
                         if(comboCount < 3) {
                             AudioSys.playSFX('combo');
                             spawnFloatingText(this.x, this.y - 50, `${T.combo_x}${comboCount}`, "#ffaa00");
+                            addCredits(2); // Combo Bonusu
                         } else if (comboCount === 3) {
                             shields++; 
                             document.getElementById('shield-count').innerText=shields;
@@ -549,6 +714,7 @@
                             spawnFloatingText(this.x, this.y - 80, T.shield_gained, "#00ff9d");
                             AudioSys.playSFX('shield_get');
                             comboCount = 0;
+                            addCredits(10); // Joker Bonusu (BÜYÜK ÖDÜL)
                         }
                     } else {
                         logHistory('🔵');
@@ -580,8 +746,9 @@
             draw() { 
                 let dy=this.y-cameraY; if(dy<-200||dy>height+200) return; 
                 let theme = THEMES[currentThemeIdx];
-                ctx.beginPath(); ctx.arc(this.x, dy, this.rad, 0, 6.28); ctx.strokeStyle='#333'; ctx.lineWidth=3; ctx.stroke(); 
-                ctx.beginPath(); ctx.arc(this.x, dy, this.rad-5, 0, 6.28); ctx.strokeStyle=theme.main; ctx.lineWidth=1; ctx.stroke(); 
+                let pulse = Math.sin(Date.now() * 0.005) * 2;
+                ctx.beginPath(); ctx.arc(this.x, dy, this.rad + pulse, 0, 6.28); ctx.strokeStyle='#333'; ctx.lineWidth=3; ctx.stroke(); 
+                ctx.beginPath(); ctx.arc(this.x, dy, this.rad-5 + pulse, 0, 6.28); ctx.strokeStyle=theme.main; ctx.lineWidth=1; ctx.stroke(); 
                 if(this.shrinking) { ctx.fillStyle='#ff0000'; ctx.beginPath(); ctx.arc(this.x, dy, 3, 0, 6.28); ctx.fill(); }
             }
         }
@@ -597,6 +764,7 @@
             cameraY=player.y-height/1.5; generateOrbs();
             document.getElementById('score').innerText=0; document.getElementById('shield-count').innerText=0;
             updateThemeUI();
+            updateCreditsDisplay();
         }
 
         function attachPlayer(o) { player.orbiting=true; player.currentOrb=o; player.angle=Math.atan2(player.y-o.y, player.x-o.x); player.attachTime = Date.now(); AudioSys.playSFX('dock'); }
@@ -616,6 +784,7 @@
                     if(player.currentOrb!==o) { 
                         attachPlayer(o); 
                         score++; window.gameScore=score; 
+                        addCredits(1); // Her atlayış 1 Altın
                         document.getElementById('score').innerText=score; 
                         let nextIdx = currentThemeIdx + 1;
                         if(nextIdx < THEMES.length && score >= THEMES[nextIdx].score) { currentThemeIdx = nextIdx; triggerLevelUp(currentThemeIdx); }
@@ -636,16 +805,12 @@
         function gameOver() {
             gameState='GAMEOVER'; AudioSys.stopMusic(); AudioSys.playSFX('die');
             logHistory('💀');
-            
             let historyStr = gameHistory.slice(-10).join('');
             document.getElementById('share-preview').innerText = historyStr;
-
             let personalBest = localStorage.getItem('neonLeapBest') || 0;
             if (score > personalBest) { personalBest = score; localStorage.setItem('neonLeapBest', personalBest); }
-            
             document.getElementById('final-score').innerText = score;
             document.getElementById('best-score').innerText = personalBest;
-
             document.getElementById('game-over-screen').classList.remove('hidden');
             document.getElementById('save-score-area').style.display = 'block';
         }
@@ -663,7 +828,20 @@
             else { if (document.exitFullscreen) document.exitFullscreen(); }
         }
 
+        function togglePause() {
+            if (gameState === 'PLAYING') {
+                gameState = 'PAUSED';
+                document.getElementById('pause-screen').classList.remove('hidden');
+                AudioSys.stopMusic();
+            } else if (gameState === 'PAUSED') {
+                gameState = 'PLAYING';
+                document.getElementById('pause-screen').classList.add('hidden');
+                if (AudioSys.isMusicOn) AudioSys.startMusic();
+            }
+        }
+
         function loop() {
+            if (gameState === 'PAUSED') { requestAnimationFrame(loop); return; }
             ctx.fillStyle=THEMES[currentThemeIdx].bg; ctx.fillRect(0,0,width,height);
             stars.forEach(s => { s.update(); s.draw(); });
             if(gameState==='PLAYING' || gameState==='RECOVERING') { player.update(); let tCam = player.y - height/1.8; if(tCam<cameraY) cameraY+=(tCam-cameraY)*0.1; if(gameState==='PLAYING') { generateOrbs(); checkCols(); } }
@@ -685,12 +863,18 @@
         document.getElementById('music-btn').addEventListener('click', (e) => { e.stopPropagation(); AudioSys.toggleMusic(); });
         document.getElementById('sfx-btn').addEventListener('click', (e) => { e.stopPropagation(); AudioSys.toggleSfx(); });
         document.getElementById('fullscreen-btn').addEventListener('click', (e) => { e.stopPropagation(); toggleFullScreen(); });
+        document.getElementById('pause-btn').addEventListener('click', (e) => { e.stopPropagation(); togglePause(); });
+        document.getElementById('resume-btn').addEventListener('click', (e) => { e.stopPropagation(); togglePause(); });
+        document.getElementById('quit-btn').addEventListener('click', (e) => { location.reload(); });
+        document.getElementById('shop-btn').addEventListener('click', (e) => { e.stopPropagation(); renderShop(); document.getElementById('shop-screen').classList.remove('hidden'); });
+        document.getElementById('close-shop-btn').addEventListener('click', (e) => { document.getElementById('shop-screen').classList.add('hidden'); });
 
         window.addEventListener('mousedown', e=>{ if(e.target.tagName!=='BUTTON' && e.target.tagName!=='INPUT') if(gameState==='PLAYING') player.jump(); });
         window.addEventListener('touchstart', e=>{ if(e.target.tagName!=='BUTTON' && e.target.tagName!=='INPUT') {e.preventDefault(); if(gameState==='PLAYING') player.jump();} }, {passive:false});
         window.addEventListener('resize', ()=>{width=window.innerWidth; height=window.innerHeight; canvas.width=width; canvas.height=height;});
         
         function showToast(msg) { const t = document.getElementById('toast'); t.innerText=msg; t.classList.add('show-toast'); setTimeout(()=>t.classList.remove('show-toast'), 2000); }
+        updateCreditsDisplay();
     </script>
 </body>
 </html>
