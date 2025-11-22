@@ -12,7 +12,7 @@
 
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Neon Leap: Gold Rush</title>
+    <title>Neon Leap: Boss Mode</title>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&display=swap');
         
@@ -25,14 +25,29 @@
         }
         canvas { display: block; width: 100%; height: 100%; }
 
-        /* UI KATMANI */
+        /* EKRAN SARSINTISI EFEKTİ */
+        @keyframes shake {
+            0% { transform: translate(1px, 1px) rotate(0deg); }
+            10% { transform: translate(-1px, -2px) rotate(-1deg); }
+            20% { transform: translate(-3px, 0px) rotate(1deg); }
+            30% { transform: translate(3px, 2px) rotate(0deg); }
+            40% { transform: translate(1px, -1px) rotate(1deg); }
+            50% { transform: translate(-1px, 2px) rotate(-1deg); }
+            60% { transform: translate(-3px, 1px) rotate(0deg); }
+            70% { transform: translate(3px, 1px) rotate(-1deg); }
+            80% { transform: translate(-1px, -1px) rotate(1deg); }
+            90% { transform: translate(1px, 2px) rotate(0deg); }
+            100% { transform: translate(1px, -2px) rotate(-1deg); }
+        }
+        .shake-screen { animation: shake 0.5s; animation-iteration-count: infinite; }
+
+        /* UI */
         #ui-layer {
             position: absolute; top: 0; left: 0; width: 100%; height: 100%;
             pointer-events: none; z-index: 20;
             display: flex; flex-direction: column; align-items: center;
         }
 
-        /* HUD */
         .top-hud {
             position: absolute; top: 20px; width: 100%;
             display: grid; grid-template-columns: 1fr auto 1fr;
@@ -42,9 +57,10 @@
         
         .hud-left { display: flex; align-items: center; gap: 10px; justify-self: start; }
         .hud-center { text-align: center; }
+        .hud-right { justify-self: end; display: flex; gap: 15px; align-items: center; }
+
         .score-box { font-size: 3rem; font-weight: 900; transition: color 0.5s; line-height: 1; }
         .level-indicator { font-size: 0.7rem; color: rgba(255,255,255,0.5); letter-spacing: 2px; }
-        .hud-right { justify-self: end; display: flex; gap: 15px; align-items: center; }
 
         .shield-container {
             display: flex; align-items: center; gap: 8px;
@@ -63,7 +79,6 @@
             padding: 5px 10px; border-radius: 15px; border: 1px solid rgba(255, 215, 0, 0.3);
         }
 
-        /* BUTONLAR */
         .icon-btn {
             background: transparent; border: none; color: rgba(255,255,255,0.6);
             font-size: 1.8rem; cursor: pointer; transition: 0.2s; padding: 0;
@@ -74,7 +89,7 @@
         .menu-screen {
             pointer-events: auto; position: absolute; top: 50%; left: 50%;
             transform: translate(-50%, -50%);
-            background: rgba(10, 15, 25, 0.98); padding: 2rem;
+            background: rgba(10, 15, 25, 0.95); padding: 2rem;
             border-radius: 20px; border: 1px solid rgba(0, 242, 255, 0.3);
             text-align: center; display: flex; flex-direction: column; gap: 1rem;
             box-shadow: 0 0 60px rgba(0,0,0,0.8); min-width: 320px; max-width: 90%;
@@ -109,7 +124,6 @@
             width: 40px; height: 40px; margin: 0 auto 10px;
             display: flex; justify-content: center; align-items: center;
         }
-        /* Gemi önizlemesi için */
         .preview-ship {
             width: 0; height: 0;
             border-left: 10px solid transparent;
@@ -145,10 +159,17 @@
             position: absolute; font-weight: 900; pointer-events: none;
             animation: floatUp 1.5s forwards; text-shadow: 0 0 10px black; white-space: nowrap; font-size: 1.5rem; z-index: 10;
         }
-        @keyframes floatUp { 
-            0% { transform: translateY(0) scale(1); opacity: 1; } 
-            100% { transform: translateY(-120px) scale(1.5); opacity: 0; } 
+        @keyframes floatUp { 0% { transform: translateY(0) scale(1); opacity: 1; } 100% { transform: translateY(-120px) scale(1.5); opacity: 0; } }
+
+        /* BOSS UYARISI */
+        #boss-warning {
+            position: absolute; top: 40%; width: 100%; text-align: center;
+            font-size: 4rem; font-weight: 900; color: #ff0000;
+            text-shadow: 0 0 30px red; opacity: 0; pointer-events: none;
+            z-index: 15;
         }
+        .boss-anim { animation: bossPulse 3s infinite; opacity: 1 !important; }
+        @keyframes bossPulse { 0%, 100% { transform: scale(1); opacity: 0.8; } 50% { transform: scale(1.1); opacity: 1; } }
 
         #level-up-msg {
             position: absolute; top: 35%; width: 100%; text-align: center;
@@ -210,25 +231,23 @@
         </div>
 
         <div id="level-up-msg">LEVEL UP!</div>
+        <div id="boss-warning">⚠️ BOSS ⚠️</div>
 
-        <!-- PAUSE -->
         <div id="pause-screen" class="menu-screen hidden">
             <h1>PAUSED</h1>
             <button class="btn" id="resume-btn">DEVAM ET</button>
             <button class="btn btn-secondary" id="quit-btn">ÇIKIŞ</button>
         </div>
 
-        <!-- START -->
         <div id="start-screen" class="menu-screen">
             <h1>NEON LEAP</h1>
             <p style="color:#ccc; line-height: 1.6;">
-                <span style="color:#ffaa00" data-i18n="start_subtitle_1">🔥 SERİ OYNA (Combo)</span><br>
+                <span style="color:#ffaa00" data-i18n="start_subtitle_1">🔥 HIZLI OYNA (Combo)</span><br>
                 <span style="color:#00ff9d" data-i18n="start_subtitle_2">🛡️ 3 COMBO = 1 JOKER</span>
             </p>
             <button class="btn" id="start-btn" data-i18n="btn_start">BAŞLAT</button>
         </div>
 
-        <!-- MARKET -->
         <div id="shop-screen" class="menu-screen hidden">
             <h2 style="color:#ffd700;">MARKET</h2>
             <div class="credits-box" style="justify-content:center; margin-bottom:15px; background:none; border:none;">
@@ -239,7 +258,6 @@
             <button class="btn btn-secondary" id="close-shop-btn">KAPAT</button>
         </div>
 
-        <!-- GAME OVER -->
         <div id="game-over-screen" class="menu-screen hidden">
             <h2 style="color:#ff0055; margin:0;" data-i18n="game_over_title">GÖREV SONU</h2>
             
@@ -270,7 +288,6 @@
             </div>
         </div>
 
-        <!-- LEADERBOARD -->
         <div id="leaderboard-screen" class="menu-screen hidden" style="z-index: 100;">
             <h2 style="color:#ffd700; margin-bottom: 10px;" data-i18n="leaderboard_title">🏆 TOP 10 PİLOT</h2>
             <div id="leaderboard-content" class="loading" data-i18n="loading">Yükleniyor...</div>
@@ -288,7 +305,7 @@
     <textarea id="clipboard-helper" style="position:absolute; left:-9999px;"></textarea>
     <canvas id="gameCanvas"></canvas>
 
-    <!-- ÇOKLU DİL -->
+    <!-- DİL -->
     <script>
         const TRANSLATIONS = {
             tr: {
@@ -437,9 +454,11 @@
         let gameHistory = [];
         const HISTORY_LIMIT = 10;
         
-        // MARKET SİSTEMİ
+        // MARKET SİSTEMİ (DÜZELTİLDİ)
         let totalCredits = parseInt(localStorage.getItem('neonLeapCredits') || '0');
         let currentSkin = localStorage.getItem('neonLeapSkin') || 'default';
+        // Sahip olunan skinleri JSON dizisi olarak saklıyoruz
+        let ownedSkins = JSON.parse(localStorage.getItem('neonOwnedSkins')) || ['default'];
         
         const SKINS = [
             { id: 'default', name: 'Neon White', cost: 0, color: '#ffffff' },
@@ -458,16 +477,15 @@
             totalCredits += amount;
             localStorage.setItem('neonLeapCredits', totalCredits);
             updateCreditsDisplay();
-            spawnFloatingText(width/2, 100, `+${amount} 🟡`, "#ffd700");
+            spawnFloatingText(width/2, 120, `+${amount} 🟡`, "#ffd700");
         }
 
-        // --- MARKET UI RENDER ---
+        // --- MARKET UI RENDER (FIX) ---
         function renderShop() {
             const grid = document.getElementById('shop-grid');
             grid.innerHTML = '';
             SKINS.forEach(skin => {
-                // localStorage 'true' string'ini kontrol et
-                const isOwned = skin.cost === 0 || (localStorage.getItem('skin_' + skin.id) === 'true');
+                const isOwned = ownedSkins.includes(skin.id);
                 const isSelected = currentSkin === skin.id;
                 
                 const item = document.createElement('div');
@@ -478,7 +496,7 @@
                     </div>
                     <div style="font-weight:bold; font-size:0.8rem; margin-bottom:5px;">${skin.name}</div>
                     <div class="${isOwned ? (isSelected ? 'shop-active-text' : 'shop-owned') : 'shop-price'}">
-                        ${isOwned ? (isSelected ? 'KULLANILIYOR' : 'SAHİPSİN') : skin.cost + ' 🟡'}
+                        ${isOwned ? (isSelected ? 'SEÇİLİ' : 'SAHİP OLUNDU') : skin.cost + ' 🟡'}
                     </div>
                 `;
                 
@@ -495,15 +513,21 @@
                 AudioSys.playSFX('dock');
             } else {
                 if (totalCredits >= skin.cost) {
-                    totalCredits -= skin.cost;
-                    localStorage.setItem('neonLeapCredits', totalCredits);
-                    localStorage.setItem('skin_' + skin.id, 'true'); // String olarak kaydet
-                    currentSkin = skin.id; // Otomatik seç
-                    localStorage.setItem('neonLeapSkin', currentSkin);
-                    updateCreditsDisplay();
-                    renderShop();
-                    AudioSys.playSFX('levelup');
-                    showToast("SATIN ALINDI!");
+                    if(confirm(`${skin.cost} Kredi harcansın mı?`)) {
+                        totalCredits -= skin.cost;
+                        localStorage.setItem('neonLeapCredits', totalCredits);
+                        
+                        ownedSkins.push(skin.id);
+                        localStorage.setItem('neonOwnedSkins', JSON.stringify(ownedSkins));
+                        
+                        currentSkin = skin.id;
+                        localStorage.setItem('neonLeapSkin', currentSkin);
+                        
+                        updateCreditsDisplay();
+                        renderShop();
+                        AudioSys.playSFX('levelup');
+                        showToast("SATIN ALINDI!");
+                    }
                 } else {
                     showToast("YETERSİZ KREDİ!");
                 }
@@ -542,14 +566,62 @@
             AudioSys.playSFX('levelup');
         }
 
-        // --- SES (SYNTHWAVE ENGINE) ---
+        // --- BOSS MANTIĞI ---
+        const BOSS = {
+            active: false, y: -1000, speed: 0, warningShown: false,
+            reset: function() { this.active=false; this.y=height+100; this.warningShown=false; document.body.classList.remove('shake-screen'); document.getElementById('boss-warning').classList.remove('boss-anim'); },
+            check: function() {
+                // Her 30 puanda bir (30, 60, 90...)
+                if (score > 0 && score % 30 === 0 && !this.active && !this.warningShown) {
+                    this.startWarning();
+                }
+            },
+            startWarning: function() {
+                this.warningShown = true;
+                const w = document.getElementById('boss-warning');
+                w.classList.add('boss-anim');
+                AudioSys.playSFX('die'); // Siren sesi niyetine
+                setTimeout(() => {
+                    w.classList.remove('boss-anim');
+                    this.startEncounter();
+                }, 3000);
+            },
+            startEncounter: function() {
+                this.active = true;
+                this.y = height + 100; // Alttan başla
+                this.speed = 2 + (score * 0.05); // Skor arttıkça hızlan
+                document.body.classList.add('shake-screen');
+            },
+            update: function() {
+                if(!this.active) return;
+                this.y -= this.speed; // Yukarı çık
+                
+                // Ekranı geçtiyse (Oyuncu kazandı)
+                if(this.y < -500) {
+                    this.reset();
+                    addCredits(20); // Boss Ödülü
+                    spawnFloatingText(width/2, height/2, "BOSS ATLATILDI! +20 🟡", "#ffd700");
+                }
+            },
+            draw: function() {
+                if(!this.active) return;
+                // Kırmızı Lazer Dalgası Çizimi
+                let grad = ctx.createLinearGradient(0, this.y, 0, this.y + 400);
+                grad.addColorStop(0, 'rgba(255, 0, 0, 0.8)');
+                grad.addColorStop(1, 'rgba(255, 0, 0, 0)');
+                ctx.fillStyle = grad;
+                ctx.fillRect(0, this.y, width, 400);
+                // Lazer çizgisi
+                ctx.strokeStyle = '#ff0000'; ctx.lineWidth = 5;
+                ctx.beginPath(); ctx.moveTo(0, this.y); ctx.lineTo(width, this.y); ctx.stroke();
+            }
+        };
+
         const AudioSys = {
             ctx: null, tempo: 100, isMusicOn: true, isSfxOn: true, beatCount: 0, timerID: null,
             scale: [130.81, 155.56, 174.61, 196.00, 233.08, 261.63],
             bassScale: [65.41, 77.78, 87.31, 98.00],
-
             init: function() { try { const AC = window.AudioContext || window.webkitAudioContext; if(AC && !this.ctx) this.ctx = new AC(); if(this.ctx.state === 'suspended') this.ctx.resume(); } catch(e){} },
-            
             scheduleNextBeat: function() {
                 if (!this.isMusicOn || gameState !== 'PLAYING') return;
                 const secondsPerBeat = 60.0 / this.tempo;
@@ -558,69 +630,22 @@
                 this.beatCount = (this.beatCount + 1) % 16; 
                 this.timerID = setTimeout(() => this.scheduleNextBeat(), secondsPer16th * 1000);
             },
-            
-            updateTempo: function() {
-                this.tempo = Math.min(160, 100 + (score * 1.5));
-            },
-
+            updateTempo: function() { this.tempo = Math.min(160, 100 + (score * 1.5)); },
             playBeat: function(time, step) {
                 this.updateTempo();
                 if (step % 4 === 0) this.playDrum(time, 100, 'kick');
                 if (score > 10 && step % 2 !== 0) this.playDrum(time, 800, 'hat');
-                if (score > 5) {
-                    let noteIdx = Math.floor(step / 4) % this.bassScale.length;
-                    if (step % 2 === 0) this.playSynth(time, this.bassScale[noteIdx], 'sawtooth', 0.15, 0.1);
-                }
-                if (score > 20 && Math.random() > 0.6 && step % 2 === 0) {
-                    let note = this.scale[Math.floor(Math.random() * this.scale.length)];
-                    this.playSynth(time, note * 2, 'square', 0.05, 0.1);
-                }
+                if (score > 5) { let noteIdx = Math.floor(step / 4) % this.bassScale.length; if (step % 2 === 0) this.playSynth(time, this.bassScale[noteIdx], 'sawtooth', 0.15, 0.1); }
+                if (score > 20 && Math.random() > 0.6 && step % 2 === 0) { let note = this.scale[Math.floor(Math.random() * this.scale.length)]; this.playSynth(time, note * 2, 'square', 0.05, 0.1); }
             },
-            
             startMusic: function() { if (this.timerID) clearTimeout(this.timerID); this.beatCount = 0; this.tempo = 100; this.scheduleNextBeat(); },
             stopMusic: function() { if (this.timerID) clearTimeout(this.timerID); },
-            
-            toggleMusic: function() {
-                this.isMusicOn = !this.isMusicOn;
-                document.getElementById('music-btn').classList.toggle('audio-off', !this.isMusicOn);
-                if(this.isMusicOn && gameState==='PLAYING') this.startMusic(); else this.stopMusic();
-            },
-            
-            toggleSfx: function() {
-                this.isSfxOn = !this.isSfxOn;
-                document.getElementById('sfx-btn').classList.toggle('audio-off', !this.isSfxOn);
-            },
-
-            playDrum: function(time, freq, type) {
-                if (!this.ctx) return;
-                const osc = this.ctx.createOscillator();
-                const gain = this.ctx.createGain();
-                osc.connect(gain); gain.connect(this.ctx.destination);
-                if (type === 'kick') {
-                    osc.frequency.setValueAtTime(freq, time); osc.frequency.exponentialRampToValueAtTime(0.01, time + 0.5);
-                    gain.gain.setValueAtTime(0.5, time); gain.gain.exponentialRampToValueAtTime(0.01, time + 0.5);
-                } else if (type === 'hat') {
-                    osc.type = 'square'; osc.frequency.setValueAtTime(freq, time);
-                    gain.gain.setValueAtTime(0.05, time); gain.gain.exponentialRampToValueAtTime(0.01, time + 0.05);
-                }
-                osc.start(time); osc.stop(time + 0.5);
-            },
-
-            playSynth: function(time, freq, type, vol, dur) {
-                if (!this.ctx) return;
-                const osc = this.ctx.createOscillator();
-                const gain = this.ctx.createGain();
-                osc.connect(gain); gain.connect(this.ctx.destination);
-                osc.type = type; osc.frequency.setValueAtTime(freq, time);
-                gain.gain.setValueAtTime(0, time); gain.gain.linearRampToValueAtTime(vol, time + 0.02); gain.gain.exponentialRampToValueAtTime(0.01, time + dur);
-                osc.start(time); osc.stop(time + dur);
-            },
-
+            toggleMusic: function() { this.isMusicOn = !this.isMusicOn; document.getElementById('music-btn').classList.toggle('audio-off', !this.isMusicOn); if(this.isMusicOn && gameState==='PLAYING') this.startMusic(); else this.stopMusic(); },
+            toggleSfx: function() { this.isSfxOn = !this.isSfxOn; document.getElementById('sfx-btn').classList.toggle('audio-off', !this.isSfxOn); },
+            playDrum: function(time, freq, type) { if (!this.ctx) return; const osc = this.ctx.createOscillator(); const gain = this.ctx.createGain(); osc.connect(gain); gain.connect(this.ctx.destination); if (type === 'kick') { osc.frequency.setValueAtTime(freq, time); osc.frequency.exponentialRampToValueAtTime(0.01, time + 0.5); gain.gain.setValueAtTime(0.5, time); gain.gain.exponentialRampToValueAtTime(0.01, time + 0.5); } else if (type === 'hat') { osc.type = 'square'; osc.frequency.setValueAtTime(freq, time); gain.gain.setValueAtTime(0.05, time); gain.gain.exponentialRampToValueAtTime(0.01, time + 0.05); } osc.start(time); osc.stop(time + 0.5); },
+            playSynth: function(time, freq, type, vol, dur) { if (!this.ctx) return; const osc = this.ctx.createOscillator(); const gain = this.ctx.createGain(); osc.connect(gain); gain.connect(this.ctx.destination); osc.type = type; osc.frequency.setValueAtTime(freq, time); gain.gain.setValueAtTime(0, time); gain.gain.linearRampToValueAtTime(vol, time + 0.02); gain.gain.exponentialRampToValueAtTime(0.01, time + dur); osc.start(time); osc.stop(time + dur); },
             playSFX: function(type) {
-                if(!this.ctx || !this.isSfxOn) return;
-                const t = this.ctx.currentTime;
-                const o = this.ctx.createOscillator(); const g = this.ctx.createGain();
-                o.connect(g); g.connect(this.ctx.destination);
+                if(!this.ctx || !this.isSfxOn) return; const t = this.ctx.currentTime; const o = this.ctx.createOscillator(); const g = this.ctx.createGain(); o.connect(g); g.connect(this.ctx.destination);
                 if(type==='dock') { o.type='triangle'; o.frequency.setValueAtTime(300, t); o.frequency.exponentialRampToValueAtTime(50, t+0.15); g.gain.setValueAtTime(0.1, t); g.gain.linearRampToValueAtTime(0, t+0.15); o.start(t); o.stop(t+0.15); }
                 else if(type==='jump') { o.type='sawtooth'; o.frequency.setValueAtTime(100, t); o.frequency.linearRampToValueAtTime(400, t+0.3); g.gain.setValueAtTime(0.1, t); g.gain.exponentialRampToValueAtTime(0.01, t+0.3); o.start(t); o.stop(t+0.3); }
                 else if(type==='combo') { o.type='sine'; o.frequency.setValueAtTime(600, t); o.frequency.exponentialRampToValueAtTime(1200, t+0.2); g.gain.setValueAtTime(0.2, t); g.gain.linearRampToValueAtTime(0, t+0.2); o.start(t); o.stop(t+0.2); }
@@ -674,6 +699,12 @@
                 } else {
                     this.x+=this.vx; this.y+=this.vy;
                     if(Math.abs(this.vx)>0.1 || Math.abs(this.vy)>0.1) this.rotation = Math.atan2(this.vy, this.vx);
+                    
+                    // BOSS ÇARPIŞMASI KONTROLÜ
+                    if(BOSS.active && this.y > BOSS.y) {
+                        if(shields>0) trySavePlayer(); else gameOver();
+                    }
+
                     if(this.x<-50 || this.x>width+50 || this.y>cameraY+height+100 || this.y<cameraY-500) {
                         trySavePlayer();
                     }
@@ -689,24 +720,20 @@
                 ctx.save(); ctx.translate(this.x, dy); ctx.rotate(this.rotation);
                 if(shields>0 && gameState==='PLAYING') { ctx.beginPath(); ctx.arc(0,0,25,0,6.28); ctx.strokeStyle=`rgba(0,255,157,${0.3+Math.sin(Date.now()*0.01)*0.2})`; ctx.lineWidth=2; ctx.stroke(); }
                 
-                // Skin Rengi ile Gemi Çizimi
                 ctx.beginPath(); ctx.moveTo(15,0); ctx.lineTo(-10,10); ctx.lineTo(-5,0); ctx.lineTo(-10,-10); 
-                ctx.fillStyle = skin.color; 
-                ctx.fill();
-                
+                ctx.fillStyle = skin.color; ctx.fill();
                 ctx.restore();
             }
             jump() {
                 if(this.orbiting) {
                     let timeSpent = Date.now() - this.attachTime;
-                    // 1.5 Saniye Combo Hakkı
                     if (timeSpent < 1500 && timeSpent > 50) {
                         comboCount++;
                         logHistory('🔥'); 
                         if(comboCount < 3) {
                             AudioSys.playSFX('combo');
                             spawnFloatingText(this.x, this.y - 50, `${T.combo_x}${comboCount}`, "#ffaa00");
-                            addCredits(2); // Combo Bonusu
+                            addCredits(2);
                         } else if (comboCount === 3) {
                             shields++; 
                             document.getElementById('shield-count').innerText=shields;
@@ -714,7 +741,7 @@
                             spawnFloatingText(this.x, this.y - 80, T.shield_gained, "#00ff9d");
                             AudioSys.playSFX('shield_get');
                             comboCount = 0;
-                            addCredits(10); // Joker Bonusu (BÜYÜK ÖDÜL)
+                            addCredits(10);
                         }
                     } else {
                         logHistory('🔵');
@@ -756,6 +783,7 @@
         function init() {
             width=window.innerWidth; height=window.innerHeight; canvas.width=width; canvas.height=height;
             player=new Player(); score=0; shields=0; comboCount=0; orbs=[]; stars=[]; window.gameScore=0; currentThemeIdx=0;
+            BOSS.reset();
             gameHistory = [];
             for(let i=0; i<100; i++) stars.push(new Star());
             let start=new Orb(height-200); start.x=width/2; start.moving=false; start.shrinking=false; orbs.push(start);
@@ -784,8 +812,11 @@
                     if(player.currentOrb!==o) { 
                         attachPlayer(o); 
                         score++; window.gameScore=score; 
-                        addCredits(1); // Her atlayış 1 Altın
+                        addCredits(1);
                         document.getElementById('score').innerText=score; 
+                        
+                        BOSS.check(); // Boss kontrolü
+
                         let nextIdx = currentThemeIdx + 1;
                         if(nextIdx < THEMES.length && score >= THEMES[nextIdx].score) { currentThemeIdx = nextIdx; triggerLevelUp(currentThemeIdx); }
                     } 
@@ -799,6 +830,7 @@
                 AudioSys.playSFX('recover'); logHistory('🛡️');
                 gameState='RECOVERING'; player.vx=0; player.vy=0;
                 spawnFloatingText(width/2, height/2, T.recovery_mode, "#00ff9d");
+                BOSS.reset(); // Kurtulursa Boss gider
             } else { gameOver(); }
         }
 
@@ -845,6 +877,10 @@
             ctx.fillStyle=THEMES[currentThemeIdx].bg; ctx.fillRect(0,0,width,height);
             stars.forEach(s => { s.update(); s.draw(); });
             if(gameState==='PLAYING' || gameState==='RECOVERING') { player.update(); let tCam = player.y - height/1.8; if(tCam<cameraY) cameraY+=(tCam-cameraY)*0.1; if(gameState==='PLAYING') { generateOrbs(); checkCols(); } }
+            
+            BOSS.update();
+            BOSS.draw(); // Arkada kalsın diye playerdan önce
+
             orbs.forEach(o => { o.update(); o.draw(); });
             if(gameState === 'RECOVERING') {
                 let target = orbs.find(o => Math.hypot(o.x - player.x, o.y - player.y) < 800) || orbs[orbs.length-1];
